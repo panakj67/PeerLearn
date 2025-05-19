@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import NotesCard from '../components/notesCard';
+import NotesCard from '../components/NotesCard';
 
 
 const BrowseNotesPage = () => {

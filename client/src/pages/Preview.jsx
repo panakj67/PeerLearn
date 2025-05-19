@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { deductPoints } from "../features/users/userSlice";
 import toast from "react-hot-toast";
 import axios from "axios";
-import NotesCard from "../components/notesCard";
+import NotesCard from "../components/NotesCard";
 import {
   FaDownload,
   FaThumbsUp,

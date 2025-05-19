@@ -8,7 +8,7 @@ import image3 from '../assets/book3.png'
 import image4 from '../assets/book4.png'
 import image5 from '../assets/book5.png'
 import { FaSearch } from "react-icons/fa"; 
-import NotesCard from '../components/notesCard';
+import NotesCard from '../components/NotesCard';
 
 const imageArray = [image1, image2, image3, image4, image5];
 
