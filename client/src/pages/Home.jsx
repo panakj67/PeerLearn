@@ -13,7 +13,7 @@ import group from '../assets/group.jpg'
 import { useNavigate } from 'react-router-dom'
 import bulb from '../assets/bulb.png'
 import { useSelector } from 'react-redux'
-import NotesCard from '../components/notesCard'
+import NotesCard from '../components/NotesCard'
 
 
 const Home = () => {
