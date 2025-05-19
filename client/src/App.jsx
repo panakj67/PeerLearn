@@ -25,7 +25,7 @@ import { fetchNotes } from './features/notes/noteSlice';
 import { setUser } from './features/users/userSlice';
 import EditProfile from './components/EditProfile';
 axios.defaults.withCredentials = true;
-axios.defaults.baseURL = import.meta.env.VITE_BACKEND_URL;
+axios.defaults.baseURL = import.meta.env.VITE_BACKEND_URL || "https://peer-learn-pankaj-kumars-projects-a2ff3a66.vercel.app";
 
 
 
