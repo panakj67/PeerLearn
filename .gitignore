@@ -1,0 +1,22 @@
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build outputs (frontend and backend)
+dist/
+build/
+
+# OS and IDE files
+.DS_Store
+.env
+.env.*.local
+client/.env
+server/.env
+.vscode/
+*.swp
+
+# Vite/React specific (client)
+client/node_modules/
+client/dist/
