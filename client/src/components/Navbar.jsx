@@ -59,7 +59,7 @@ const Navbar = () => {
         <NavLink to="/" className="flex items-center gap-2">
           <img
             className="h-10"
-            src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSuXGHsjFwcBaHsC0HqFowzkj2fFRayCf1Cag&s"
+            src="/images.png"
             alt="Logo"
           />
           <h1 className="font-bold text-4xl text-blue-700 tracking-tight">

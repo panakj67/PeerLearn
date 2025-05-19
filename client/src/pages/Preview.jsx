@@ -27,13 +27,10 @@ const Preview = () => {
   const { id, branch } = useParams();
   const note = notes.find((note) => note._id === id);
 
-  
   const url = note?.fileUrl;
   const dispatch = useDispatch();
   const downloads = useSelector((state) => state.user.user?.downloads);
   const hasPurchased = downloads?.includes(id) || note.user._id === user._id;
-
- 
 
   const relatedNotes = notes.filter(
     (note) => note.branch === branch && note._id !== id
@@ -46,10 +43,7 @@ const Preview = () => {
       if (userPoints >= 10) {
         // Deduct points from the user
         dispatch(deductPoints(10));
-        const { data } = await axios.post(
-          "/api/user/download",
-          { id: id }
-        );
+        const { data } = await axios.post("/api/user/download", { id: id });
         if (data.success) {
           toast.success("Purchase successful!");
         } else {
@@ -65,13 +59,22 @@ const Preview = () => {
     setShowModal(false);
 
     // Trigger download manually
-    const link = document.createElement("a");
-    link.href = "/uploads/ML.pdf";
-    link.download = "ML.pdf";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    toast.success("Start downloading!!!");
+    fetch(note.fileUrl)
+      .then((response) => response.blob())
+      .then((blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `${note.title}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+        toast.success("Start downloading!!!");
+      })
+      .catch(() => {
+        toast.error("Failed to download file.");
+      });
   };
 
   const [upvoted, setUpvoted] = useState(false);
@@ -89,22 +92,22 @@ const Preview = () => {
 
   const [like, setLike] = useState(note?.like.length);
   const [dislike, setDislike] = useState(note?.dislike.length);
-  
-  
+
   const handleClick = async (event) => {
-    
     try {
-      const {data} = await axios.post(`/api/note/${note._id}`, {id : user._id, event})
-      if(data.success) {}
-      else toast.error(data.message)
+      const { data } = await axios.post(`/api/note/${note._id}`, {
+        id: user._id,
+        event,
+      });
+      if (data.success) {
+      } else toast.error(data.message);
       // console.log(data.note)
-      setLike(data.note.like.length)
-      setDislike(data.note.dislike.length)
+      setLike(data.note.like.length);
+      setDislike(data.note.dislike.length);
     } catch (error) {
-      toast.error(error.meassage)
+      toast.error(error.meassage);
     }
-  }
-  
+  };
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -115,14 +118,15 @@ const Preview = () => {
   }, []);
 
   const [currentPage, setCurrentPage] = useState(1);
-  const goToNextPage = () => setCurrentPage(prev => {
-    if(!hasPurchased && prev === 4){
-      setShow(true);
-      return prev;
-    }
-    return Math.min(prev + 1, totalPages);
-  });
-  const goToPrevPage = () => setCurrentPage(prev => Math.max(prev - 1, 1));
+  const goToNextPage = () =>
+    setCurrentPage((prev) => {
+      if (!hasPurchased && prev === 4) {
+        setShow(true);
+        return prev;
+      }
+      return Math.min(prev + 1, totalPages);
+    });
+  const goToPrevPage = () => setCurrentPage((prev) => Math.max(prev - 1, 1));
 
   // useEffect(() => {
   //   if (!url) return;
@@ -148,24 +152,23 @@ const Preview = () => {
   // }, [url]);
 
   // Render the loaded pages on canvas
-//  useEffect(() => {
-//   pagesToRender.forEach(async (page, index) => {
-//     const canvas = canvasRefs.current[index];
-//     const context = canvas.getContext("2d");
+  //  useEffect(() => {
+  //   pagesToRender.forEach(async (page, index) => {
+  //     const canvas = canvasRefs.current[index];
+  //     const context = canvas.getContext("2d");
 
-//     // ✅ Fix rotation
-//     const viewport = page.getViewport({ scale, rotation: page.rotate });
+  //     // ✅ Fix rotation
+  //     const viewport = page.getViewport({ scale, rotation: page.rotate });
 
-//     canvas.height = viewport.height;
-//     canvas.width = viewport.width;
+  //     canvas.height = viewport.height;
+  //     canvas.width = viewport.width;
 
-//     context.clearRect(0, 0, canvas.width, canvas.height);
+  //     context.clearRect(0, 0, canvas.width, canvas.height);
 
-//     await page.render({ canvasContext: context, viewport }).promise;
-//   });
-// }, [pagesToRender, scale]);
+  //     await page.render({ canvasContext: context, viewport }).promise;
+  //   });
+  // }, [pagesToRender, scale]);
 
-  
   // Load PDF document
   useEffect(() => {
     const loadPdf = async () => {
@@ -176,34 +179,34 @@ const Preview = () => {
         setTotalPages(pdf.numPages);
         setCurrentPage(1); // reset to first page on new load
       } catch (error) {
-        console.error('Error loading PDF:', error);
+        console.error("Error loading PDF:", error);
       }
     };
 
     loadPdf();
   }, [url]);
 
-    // Render current page
-    useEffect(() => {
-      const renderPage = async () => {
-        if (!pdfDoc) return;
-        const page = await pdfDoc.getPage(currentPage);
-        const viewport = page.getViewport({ scale: 1.5 });
-        const canvas = canvasRef.current;
-        const context = canvas.getContext('2d');
-        canvas.height = viewport.height;
-        canvas.width = viewport.width;
-  
-        const renderContext = {
-          canvasContext: context,
-          viewport: viewport,
-        };
-  
-        await page.render(renderContext).promise;
+  // Render current page
+  useEffect(() => {
+    const renderPage = async () => {
+      if (!pdfDoc) return;
+      const page = await pdfDoc.getPage(currentPage);
+      const viewport = page.getViewport({ scale: 1.5 });
+      const canvas = canvasRef.current;
+      const context = canvas.getContext("2d");
+      canvas.height = viewport.height;
+      canvas.width = viewport.width;
+
+      const renderContext = {
+        canvasContext: context,
+        viewport: viewport,
       };
-  
-      renderPage();
-    }, [pdfDoc, currentPage]);
+
+      await page.render(renderContext).promise;
+    };
+
+    renderPage();
+  }, [pdfDoc, currentPage]);
 
   const handlePurchase = () => {
     // Deduct points here (API call or Redux logic)
@@ -220,19 +223,19 @@ const Preview = () => {
         <div className="flex gap-6 items-center">
           <div
             name="like"
-            onClick={() => handleClick('like')}
+            onClick={() => handleClick("like")}
             className="flex cursor-pointer items-center gap-1 px-3 py-2 rounded-full border text-gray-400 border-gray-200"
           >
-            <FaThumbsUp className="text-green-500 text-10" size={20}/>
+            <FaThumbsUp className="text-green-500 text-10" size={20} />
             <span className="text-lg">{like}</span>
           </div>
 
           <div
             name="dislike"
-            onClick={() => handleClick('dislike')}
+            onClick={() => handleClick("dislike")}
             className="flex cursor-pointer items-center gap-1 px-3 py-2 rounded-full border text-gray-400 border-gray-200"
           >
-            <FaThumbsDown className="text-red-500" size={20}/>
+            <FaThumbsDown className="text-red-500" size={20} />
             <span className="text-lg">{dislike}</span>
           </div>
 
@@ -281,40 +284,24 @@ const Preview = () => {
       </div>
 
       <div className="space-y-2 mt-15 relative flex items-center justify-between">
-        {/* {pagesToRender.map((_, index) => (
-          <div key={index} className="flex justify-center">
-            <canvas
-              ref={(ref) => (canvasRefs.current[index] = ref)}
-              className="shadow-sm w-200 rounded-xl border border-gray-200"
-            />
-          </div>
-        ))} */}
-        <button onClick={goToPrevPage} className="bg-gradient-to-r from-red-200 to-orange-600 px-2 py-3 text-white rounded-full cursor-pointer" disabled={currentPage === totalPages}>
+        <button
+          onClick={goToPrevPage}
+          className="bg-gradient-to-r from-red-200 to-orange-600 px-2 py-3 text-white rounded-full cursor-pointer"
+          disabled={currentPage === totalPages}
+        >
           Prev
         </button>
-        <canvas ref={canvasRef} style={{ border: '1px solid black', marginTop: '10px', width : '85%' }} />
-        <button onClick={goToNextPage} className="bg-gradient-to-r from-blue-200 to-purple-600 px-2 py-3 text-white rounded-full cursor-pointer" disabled={currentPage === totalPages}>
+        <canvas
+          ref={canvasRef}
+          style={{ border: "1px solid black", marginTop: "10px", width: "85%" }}
+        />
+        <button
+          onClick={goToNextPage}
+          className="bg-gradient-to-r from-blue-200 to-purple-600 px-2 py-3 text-white rounded-full cursor-pointer"
+          disabled={currentPage === totalPages}
+        >
           Next
         </button>
-
-        {/* {!purchased && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/80 backdrop-blur-md z-10 text-center p-6">
-            <div className="bg-white p-6 rounded-xl shadow-xl max-w-sm border border-gray-300">
-              <h2 className="text-xl font-semibold text-gray-800 mb-2">
-                Unlock Full Notes
-              </h2>
-              <p className="mb-4 text-gray-600">
-                Preview limited to 4 pages. Pay <span className="font-bold">10 points</span> to access all {totalPages} pages and download.
-              </p>
-              <button
-                onClick={handlePurchase}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-full transition"
-              >
-                Purchase
-              </button>
-            </div>
-          </div>
-        )} */}
 
         {showModal && (
           <div className="fixed inset-0 backdrop-blur-xs flex items-center justify-center z-50">
