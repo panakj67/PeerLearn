@@ -30,7 +30,7 @@ const Login = () => {
                 // console.log(data.user);
                 dispatch(setUser(data.user))
                 dispatch(hideLogin())
-                // window.location.reload();
+                window.location.reload();
             }
             else toast.error(data.message);
         } catch (error) {
