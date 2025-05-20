@@ -53,7 +53,7 @@ const Footer = () => {
         <div className="flex space-x-4 mt-4 md:mt-0">
           <a href="#"><FaFacebookF className="text-[#1e1e2f] hover:text-blue-600" /></a>
           <a href="#"><FaTwitter className="text-[#1e1e2f] hover:text-sky-500" /></a>
-          <a href="#"><FaInstagram className="text-[#1e1e2f] hover:text-pink-500" /></a>
+          <a href="https://www.instagram.com/_pankaj_.soni/"><FaInstagram className="text-[#1e1e2f] hover:text-pink-500" /></a>
         </div>
       </div>
     </footer>

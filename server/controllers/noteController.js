@@ -1,61 +1,48 @@
-const noteModel = require('../models/noteModel')
-const cloudinary = require("../config/cloudinary");
-const userModel = require('../models/userModel');
-const fs = require('fs');
-const path = require('path');
-const { log } = require('console');
-const Note = require('../models/noteModel');
+import noteModel from "../models/noteModel.js";
+import cloudinary from "../config/cloudinary.js";
+import userModel from "../models/userModel.js";
 
+export const testNote = (req, res) => {
+  res.send("Note routes is working");
+};
 
-
-const testNote = (req, res) => {
-    res.send("Note routes is working");
-}
-
-const createNotes = async (req, res) => {
+export const createNotes = async (req, res) => {
   try {
     const { title, college, degree, semester, branch, subject } = req.body;
-    const file = req.file;   
-   
+    const file = req.file;
+
     if (!file) {
       return res.json({ success: false, message: "No file provided" });
     }
 
     const result = await cloudinary.uploader.upload(file.path, {
-      resource_type: 'auto',    // auto detects image, raw, video, etc.
-      folder: 'notes',     // optional folder
-      access_mode: 'public',    // IMPORTANT: makes file publicly accessible
+      resource_type: "auto", // auto detects image, raw, video, etc.
+      folder: "notes", // optional folder
+      access_mode: "public", // makes file publicly accessible
       use_filename: true,
       unique_filename: false,
-      format: 'pdf',
-  });
+      format: "pdf",
+    });
 
     const fileUrl = result.secure_url;
 
-
-    // -------------- NEW PART START ----------------
-    const firstPageImageUrl = fileUrl.replace('.pdf', '.jpg') + '#page=1';
+    // Construct first page image URL for preview (assuming cloudinary supports this)
+    const firstPageImageUrl = fileUrl.replace(".pdf", ".jpg") + "#page=1";
     console.log("firstPageImageUrl", firstPageImageUrl);
-    
 
-
- 
- 
-     // -------------- NEW PART END ----------------
-
-    const note =  await noteModel.create({
+    const note = await noteModel.create({
       title,
       college,
       degree,
       semester,
       branch,
       subject,
-      image : firstPageImageUrl,
+      image: firstPageImageUrl,
       fileUrl,
-      user : req.user.id,
+      user: req.user.id,
     });
 
-    let user = await userModel.findById(req.user.id);
+    const user = await userModel.findById(req.user.id);
     user.uploads.push(note._id);
     user.points += 10;
     await user.save();
@@ -63,72 +50,87 @@ const createNotes = async (req, res) => {
     res.json({
       success: true,
       message: "Document submitted successfully",
-      note
+      note,
     });
   } catch (error) {
     console.error("Error in createNotes:", error);
     res.json({ success: false, message: error.message });
   }
-}
+};
 
-const getNotes = async (req, res) => {
-    try {
+export const getNotes = async (req, res) => {
+  try {
+    const notes = await noteModel.find().populate("user");
+    res.json({ success: true, notes });
+  } catch (error) {
+    return res.json({ success: false, message: error.message });
+  }
+};
 
-      const notes = await noteModel.find().populate('user')
-      res.json({success : true, notes})
-    } catch (error) {
-      return res.json({success : false, message : error.message})
-    }
-}
+export const handleEvent = async (req, res) => {
+  try {
+    const { id, event } = req.body;
+    const { noteId } = req.params;
 
-const handleEvent = async (req, res) => {
-    try {
-        const { id, event } = req.body;
-        const {noteId} = req.params;
+    const note = await noteModel.findById(noteId);
 
-        const note = await noteModel.findById(noteId)
+    const liked = note.like.includes(id);
+    const disliked = note.dislike.includes(id);
 
-        const liked = note.like.includes(id);
-        const disliked = note.dislike.includes(id);
-        console.log(liked, ":", id);
-
-        if(event === 'like'){
-           if(liked){
-              note.like.pull(id);
-              await note.save()
-           }else {
-            note.like.push(id);
-            await note.save()
-          }
-           if(disliked){
-              note.dislike.pull(id)
-           }
-        }
-
-        else if(event === 'dislike'){
-           if(disliked){
-              note.dislike.pull(id);
-           }else note.dislike.push(id);
-           if(liked){
-              note.like.pull(id)
-           }
-        }
-
+    if (event === "like") {
+      if (liked) {
+        note.like.pull(id);
         await note.save();
-        res.json({ success: true, message: "successfully updated", note });
-    } catch (error) {
-        res.json({ success: false, message: error.message });
+      } else {
+        note.like.push(id);
+        await note.save();
+      }
+      if (disliked) {
+        note.dislike.pull(id);
+      }
+    } else if (event === "dislike") {
+      if (disliked) {
+        note.dislike.pull(id);
+      } else {
+        note.dislike.push(id);
+      }
+      if (liked) {
+        note.like.pull(id);
+      }
     }
-}
 
+    await note.save();
+    res.json({ success: true, message: "Successfully updated", note });
+  } catch (error) {
+    res.json({ success: false, message: error.message });
+  }
+};
 
+export const temp = async (req, res) => {
+  console.log("hui");
+  res.json({ message: "Hui Hui Hui" });
+};
 
-const temp = async(req, res) => {
-   console.log('hui')
-   res.json({message : "Hui Hui Hui"})
-}
+export const deleteNote = async (req, res) => {
+  try {
+    console.log("hui")
+    const { id } = req.params;
+    
+    const note = await noteModel.findByIdAndDelete(id);
+    
 
+    await userModel.updateMany(
+        { $or: [{ 'uploads._id': id }, { 'downloads._id': id }] },
+        {
+          $pull: {
+            uploads: {_id : id},
+            downloads: {_id : id},
+          },
+        }
+      );
 
-
-
-module.exports = {testNote, createNotes, getNotes, temp, handleEvent}
+    res.json({ success: true, message: "Notes deleted successfully" });
+  } catch (error) {
+    res.json({success : false, message : error.message});
+  }
+};

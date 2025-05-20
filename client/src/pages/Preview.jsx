@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import * as pdfjsLib from "pdfjs-dist";
 import { useNavigate, useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { deductPoints } from "../features/users/userSlice";
+import { addDownloads, deductPoints } from "../features/users/userSlice";
 import toast from "react-hot-toast";
 import axios from "axios";
 import NotesCard from "../components/NotesCard";
@@ -24,27 +24,33 @@ const Preview = () => {
   const userPoints = useSelector((state) => state.user.user?.points);
   const notes = useSelector((state) => state.note.notes);
   const user = useSelector((state) => state.user.user);
+  const [loading, setLoading] = useState(false);
+
   const { id, branch } = useParams();
   const note = notes.find((note) => note._id === id);
 
   const url = note?.fileUrl;
   const dispatch = useDispatch();
-  const downloads = useSelector((state) => state.user.user?.downloads);
-  const hasPurchased = downloads?.includes(id) || note.user._id === user._id;
+  const downloads = useSelector((state) => state.user.downloads);
+  const uploads = useSelector((state) => state.user.uploads);
+
+  const hasPurchased = downloads?.some(note => note?._id === id) || uploads?.some(note => note?._id === id);
+   // 5 seconds
 
   const relatedNotes = notes.filter(
-    (note) => note.branch === branch && note._id !== id
+    (note) => note?.branch === branch && note?._id !== id
   );
 
   const confirmPurchase = async (e) => {
     // 🛑 Prevent default <a> behavior
-
+    setLoading(true);
     if (!hasPurchased) {
       if (userPoints >= 10) {
         // Deduct points from the user
         dispatch(deductPoints(10));
         const { data } = await axios.post("/api/user/download", { id: id });
         if (data.success) {
+          dispatch(addDownloads(note));
           toast.success("Purchase successful!");
         } else {
           toast.error(data.message);
@@ -52,12 +58,13 @@ const Preview = () => {
       } else {
         toast.error("Not enough coins");
         setShowModal(false);
+        setLoading(false);
         return;
       }
     }
 
     setShowModal(false);
-
+  
     // Trigger download manually
     fetch(note.fileUrl)
       .then((response) => response.blob())
@@ -71,10 +78,12 @@ const Preview = () => {
         document.body.removeChild(link);
         window.URL.revokeObjectURL(url);
         toast.success("Start downloading!!!");
+
       })
       .catch(() => {
         toast.error("Failed to download file.");
       });
+      setLoading(false);
   };
 
   const [upvoted, setUpvoted] = useState(false);
@@ -87,13 +96,13 @@ const Preview = () => {
   const fileInputRef = React.useRef(null);
   const [pagesToRender, setPagesToRender] = useState([]);
 
-  const [purchased, setPurchased] = useState(false);
   const [show, setShow] = useState(false);
 
   const [like, setLike] = useState(note?.like.length);
   const [dislike, setDislike] = useState(note?.dislike.length);
 
   const handleClick = async (event) => {
+    setLoading(true);
     try {
       const { data } = await axios.post(`/api/note/${note._id}`, {
         id: user._id,
@@ -107,6 +116,7 @@ const Preview = () => {
     } catch (error) {
       toast.error(error.meassage);
     }
+    setLoading(false);
   };
 
   useEffect(() => {
@@ -216,6 +226,11 @@ const Preview = () => {
 
   return (
     <div className="max-w-6xl mx-auto mt-10 p-6 bg-white space-y-3">
+      {loading && (
+        <div className="fixed inset-0 flex items-center justify-center bac z-50">
+          <div className="w-10 h-10 border-4 border-t-transparent border-blue-600 rounded-full animate-spin"></div>
+        </div>
+      )}
       {/* Title */}
       <div className="flex justify-between items-center ">
         <h1 className="text-3xl font-bold text-blue-700">{note?.title}</h1>

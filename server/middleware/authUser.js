@@ -1,6 +1,6 @@
-const jwt = require('jsonwebtoken')
+import jwt from "jsonwebtoken";
 
-const authUser = async (req, res, next) => {
+export const authUser = async (req, res, next) => {
     const { token } = req.cookies;
     try {
         
@@ -15,5 +15,3 @@ const authUser = async (req, res, next) => {
         return res.json({success : false, message : error.message});
     }
 }
-
-module.exports = {authUser}

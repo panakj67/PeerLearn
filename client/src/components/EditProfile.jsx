@@ -31,8 +31,12 @@ const EditProfile = ({ user }) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  const [loading, setLoading] = useState(false);
+
   const handleSave = async () => {
     // Here you would typically send the updated data to your backend
+    setLoading(true);
+
     const form = new FormData();
     form.append("name", formData.name);
     form.append("email", formData.email);
@@ -58,10 +62,16 @@ const EditProfile = ({ user }) => {
     } catch (error) {
       toast.error(error.message);
     }
+    setLoading(false);
   };
 
   return (
     <div className="max-w-full mx-auto bg-white p-8 mt-10 mb-20">
+      {loading && (
+        <div className="fixed inset-0 flex items-center justify-center bac z-50">
+          <div className="w-10 h-10 border-4 border-t-transparent border-blue-600 rounded-full animate-spin"></div>
+        </div>
+      )}
       <h2 className="text-3xl font-semibold mb-8 text-gray-800 text-center">
         Edit Profile
       </h2>

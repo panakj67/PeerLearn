@@ -11,16 +11,18 @@ export const noteSlice = createSlice({
     reducers : {
         setSearch : (state, action) => {
             state.searchTerm = action.payload
-            
         },
         fetchNotes : (state, action) => {
             state.notes = action.payload
         },
         addNotes : (state, action) => {
             state.notes.push(action.payload)
+        },
+        deleteNotes : (state) => {
+            state.notes = state.notes.filter((note) => note._id !== action.payload);
         }
     }
 })
 
-export const { setSearch, fetchNotes, addNotes } = noteSlice.actions;
+export const { setSearch, fetchNotes, deleteNotes, addNotes } = noteSlice.actions;
 export default noteSlice.reducer;
