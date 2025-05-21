@@ -18,6 +18,8 @@ const StudentProfile = () => {
 
   const user = useSelector((state) => state.user.user);
   const points = useSelector((state) => state.user?.points);
+  const uploads = useSelector((state) => state.user?.uploads);
+  const downloads = useSelector((state) => state.user?.downloads);
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-12">
@@ -51,7 +53,7 @@ const StudentProfile = () => {
             </div>
             <button
               onClick={() => navigate("/profile/edit")}
-              className="mt-6 sm:mt-0 px-6 py-2 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold hover:scale-105 transition-transform shadow-lg"
+              className="mt-6 sm:mt-0 px-6 py-2 cursor-pointer rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold hover:scale-105 transition-transform shadow-lg"
             >
               ✏️ Edit Profile
             </button>
@@ -79,7 +81,7 @@ const StudentProfile = () => {
                 />
               </div>
               <h3 className="text-3xl font-bold text-green-700">
-                {(user?.uploads || [])?.length}
+                {(uploads || [])?.length}
               </h3>
               <p className="text-gray-600">📤 Notes Uploaded</p>
             </div>
@@ -92,7 +94,7 @@ const StudentProfile = () => {
                 />
               </div>
               <h3 className="text-3xl font-bold text-purple-700">
-                {(user?.downloads || []).length}
+                {(downloads || []).length}
               </h3>
               <p className="text-gray-600">📥 Downloads Made</p>
             </div>
@@ -113,16 +115,16 @@ const StudentProfile = () => {
               </div>
             </div>
 
-            {user && user.uploads.length > 0 ? (
+            {user && uploads.length > 0 ? (
               <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                {user.uploads.slice(0, 5).map((upload) => (
+                {uploads.map((upload) => (
                   <div
-                    key={upload._id}
+                    key={upload?._id}
                     className="bg-white hover:shadow-xl transition-shadow border border-gray-200 rounded-xl p-5 hover:bg-green-50"
                   >
                     <div className="flex items-center justify-between mb-4">
                       <h4 className="text-lg font-semibold text-gray-800 mb-1 truncate">
-                        {upload.title}
+                        {upload?.title}
                       </h4>
                       <div className="flex gap-6 items-center">
                         <div
@@ -130,7 +132,7 @@ const StudentProfile = () => {
                           className="flex items-center gap-1 px-3 py-2 rounded-full border text-gray-400 border-gray-200"
                         >
                           <FaThumbsUp className="text-green-500 text-10" />
-                          <span className="text-md">{upload?.like.length}</span>
+                          <span className="text-md">{upload?.like?.length}</span>
                         </div>
 
                         <div
@@ -139,16 +141,16 @@ const StudentProfile = () => {
                         >
                           <FaThumbsDown className="text-red-500" />
                           <span className="text-md">
-                            {upload?.dislike.length}
+                            {upload?.dislike?.length}
                           </span>
                         </div>
                       </div>
                     </div>
                     <p className="text-sm text-gray-500 line-clamp-2 mb-3">
-                      {upload.description}
+                      {upload?.description}
                     </p>
                     <a
-                      href={upload.fileUrl}
+                      href={upload?.fileUrl}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-block text-green-600 font-medium hover:underline text-sm"
@@ -161,6 +163,65 @@ const StudentProfile = () => {
             ) : (
               <p className="text-gray-600 text-sm">
                 No recent uploads available.
+              </p>
+            )}
+          </div>
+
+          
+          <div className="bg-gradient-to-br from-blue-100 to-blue-50 py-10 pb-20 via-blue-50 to-white rounded-2xl shadow-xl p-6 mt-6">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-2xl font-extrabold text-blue-700">
+                📂 Recent Downloads
+              </h3>
+            
+            </div>
+
+            {user && downloads.length > 0 ? (
+              <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                {downloads.map((note) => (
+                  <div
+                    key={note?._id}
+                    className="bg-white hover:shadow-xl transition-shadow border border-gray-200 rounded-xl p-5"
+                  >
+                    <div className="flex items-center justify-between mb-4">
+                      <h4 className="text-lg font-semibold text-gray-800 mb-1 truncate">
+                        {note?.title}
+                      </h4>
+                      <div className="flex gap-6 items-center">
+                        <div
+                          name="like"
+                          className="flex items-center gap-1 px-3 py-2 rounded-full border text-gray-400 border-gray-200"
+                        >
+                          <FaThumbsUp className="text-green-500 text-10" />
+                          <span className="text-md">{note?.like?.length}</span>
+                        </div>
+
+                        <div
+                          name="dislike"
+                          className="flex items-center gap-1 px-3 py-2 rounded-full border text-gray-400 border-gray-200"
+                        >
+                          <FaThumbsDown className="text-red-500" />
+                          <span className="text-md">
+                            {note?.dislike?.length}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    <p className="text-sm text-gray-500 line-clamp-2 mb-3">
+                      {note?.description}
+                    </p>
+                    <button
+                      onClick= {() => navigate(`/${note?.branch}/${note?._id}`)}
+                      className="text-blue-600 font-medium cursor-pointer hover:underline text-sm"
+                    >
+                      🔗 View File
+                    </button>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-gray-600 text-sm">
+                No recent downloads available.
               </p>
             )}
           </div>

@@ -11,6 +11,7 @@ const Login = () => {
     const [name, setName] = React.useState("");
     const [email, setEmail] = React.useState("");
     const [password, setPassword] = React.useState("");
+    // const [loading, setLoading] = useState(false);
     const navigate  = useNavigate()
     const dispatch = useDispatch()
 
@@ -34,13 +35,20 @@ const Login = () => {
         } catch (error) {
             toast.error(error.message)
         }
-        
+        // window.location.reload();
     }
     // console.log(user);
 
 
   return (
     <div onClick={() => dispatch(hideLogin())} className='fixed top-0 bottom-0 left-0 right-0 z-30 flex items-center text-sm text-gray-600 bg-black/50'>
+        {/* {loading && (
+        <div className="fixed inset-0 flex items-center justify-center bac z-50">
+          <div className="w-10 h-10 border-4 border-t-transparent border-blue-600 rounded-full animate-spin"></div>
+        </div>
+        )} */}
+        
+        
         <form onSubmit={(e) => onSubmitHandler(e)} onClick={(e) => e.stopPropagation()} className="flex flex-col gap-4 m-auto items-start p-8 py-12 sm:w-[382px] rounded-lg shadow-xl border border-gray-200 bg-white">
             <p className="text-2xl font-medium m-auto">
                 <span className="text-blue-600 font-semibold">User</span> {state === "login" ? "Login" : "Sign Up"}

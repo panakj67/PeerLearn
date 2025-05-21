@@ -86,7 +86,9 @@ const UploadGuidelines = () => {
 
       {/* Call to Action */}
       <div className="text-center mt-12">
-        <button className="px-12 py-3 rounded-full bg-blue-600 text-white text-lg hover:bg-blue-700 transition-all ease-in-out">
+        <button
+        onClick={() => window.location.href = '/upload'}
+         className="px-12 py-3 cursor-pointer rounded-full bg-blue-600 text-white text-lg hover:bg-blue-700 transition-all ease-in-out">
           Start Uploading Your Notes
         </button>
       </div>

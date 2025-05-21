@@ -1,10 +1,13 @@
-require('dotenv').config();
-const cookieParser = require('cookie-parser')
-const express = require('express')
-const connectDB = require('./config/db')
-const userRouter = require('./routes/userRoutes.js')
-const noteRouter = require('./routes/noteRoutes.js')
-const cors = require('cors')
+import dotenv from 'dotenv';
+dotenv.config();
+
+import cookieParser from 'cookie-parser';
+import express from 'express';
+import connectDB from './config/db.js';
+import userRouter from './routes/userRoutes.js';
+import noteRouter from './routes/noteRoutes.js';
+import cors from 'cors';
+import apiRouter from './routes/apiRoutes.js';
 
 
 
@@ -20,6 +23,7 @@ app.use(express.urlencoded({ extended: true }));
 
 
 const allowedOrigins = [
+  process.env.FRONTEND_URL,
   "https://peer-learn.vercel.app",
   "https://peer-learn-git-main-pankaj-kumars-projects-a2ff3a66.vercel.app",
   "https://peer-learn-hcaoc1416-pankaj-kumars-projects-a2ff3a66.vercel.app",
@@ -42,6 +46,7 @@ app.get('/', (req, res) => {
 })
 app.use('/api/user', userRouter)
 app.use('/api/note', noteRouter)
+app.use('/api/chat', apiRouter)
 
 app.listen(3000, () => {
     console.log("Server is running on PORT 3000");

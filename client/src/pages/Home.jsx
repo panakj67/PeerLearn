@@ -42,10 +42,10 @@ const Home = () => {
           <button onClick={() => navigate('/upload')} className='px-12 py-2 mt-6 rounded-xl cursor-pointer hover:shadow-xl transition hover:shadow-blue-500/28 text-white bg-blue-600'>Start Sharing Notes</button>
         </div>
         <div className="right relative">
-          <div className='w-74 h-96 overflow-hidden absolute left-18 -top-8 -z-1 rounded-full bg-red-300'>
+          <div className='w-74 h-96 overflow-hidden absolute left-18 -top-8 -z-1 rounded-full '>
             <img className='w-full h-full object-cover' src="https://terribullshop.com/cdn/shop/files/DA95D9B1-A123-4D25-8351-86660884569F.jpg?v=1739936833" alt="" />
           </div>
-          <div className='w-44 h-61 absolute overflow-hidden left-80 top-28 rounded-full bg-red-800'>
+          <div className='w-44 h-61 absolute overflow-hidden left-80 top-28 rounded-full '>
             <img className='w-full h-full object-cover' src="https://plus.unsplash.com/premium_photo-1681505244718-68bb8ba65b6c?q=80&w=2072&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="" />
           </div>
           <div className='absolute w-50 h-70 left-68 top-1 -z-2 bg-blue-300/40 rounded-full'></div>

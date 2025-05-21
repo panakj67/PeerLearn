@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
-import Select from 'react-select';
-import axios from 'axios';
-import toast from 'react-hot-toast';
-import { useNavigate } from 'react-router-dom';
-import { addPoints, setUser } from '../features/users/userSlice';
-import { useDispatch } from 'react-redux';
-import { addNotes } from '../features/notes/noteSlice';
+import React, { useState } from "react";
+import Select from "react-select";
+import axios from "axios";
+import toast from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
+import { addPoints, addUploads, setUser } from "../features/users/userSlice";
+import { useDispatch } from "react-redux";
+import { addNotes } from "../features/notes/noteSlice";
 
 const UploadPage = () => {
   const navigate = useNavigate();
@@ -18,17 +18,20 @@ const UploadPage = () => {
     { value: "Civil Engineering", label: "Civil Engineering" },
     { value: "Pharmacy", label: "Pharmacy" },
     { value: "Humanities", label: "Humanities" },
-    { value: "Electronics and Communication", label: "Electronics and Communication" },
+    {
+      value: "Electronics and Communication",
+      label: "Electronics and Communication",
+    },
     { value: "Information Technology", label: "Information Technology" },
   ];
 
   const [formData, setFormData] = useState({
-    college: '',
-    degree: '',
-    branch: '',
-    subject: '',
-    title: '',
-    semester: '',
+    college: "",
+    degree: "",
+    branch: "",
+    subject: "",
+    title: "",
+    semester: "",
     file: null,
   });
 
@@ -43,54 +46,69 @@ const UploadPage = () => {
   const handleBranchSelect = (selectedOption) => {
     setFormData((prev) => ({
       ...prev,
-      branch: selectedOption ? selectedOption.value : '',
+      branch: selectedOption ? selectedOption.value : "",
     }));
   };
 
+  const [loading, setLoading] = useState(false);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
 
     const details = new FormData();
-    details.append('college', formData.college);
-    details.append('degree', formData.degree);
-    details.append('branch', formData.branch);
-    details.append('subject', formData.subject);
-    details.append('title', formData.title);
-    details.append('semester', formData.semester);
-    details.append('file', formData.file);
+    details.append("college", formData.college);
+    details.append("degree", formData.degree);
+    details.append("branch", formData.branch);
+    details.append("subject", formData.subject);
+    details.append("title", formData.title);
+    details.append("semester", formData.semester);
+    details.append("file", formData.file);
 
     try {
-      const { data } = await axios.post('/api/note/create-notes', details);
+      const { data } = await axios.post("/api/note/create-notes", details);
       if (data.success) {
         toast.success(data.message);
         dispatch(addNotes(data.note));
         setFormData({
-          college: '',
-          degree: '',
-          branch: '',
-          subject: '',
-          title: '',
-          semester: '',
+          college: "",
+          degree: "",
+          branch: "",
+          subject: "",
+          title: "",
+          semester: "",
           file: null,
         });
-        const userRes = await axios.get('/api/user/is-auth');
-        navigate('/');
-        dispatch(addNotes(userRes.data.note));
+        navigate("/");
+        
+        dispatch(addUploads(data.note));
         dispatch(addPoints(10));
+
       } else toast.error(data.message);
     } catch (error) {
       toast.error(error.message);
     }
+    setLoading(false);
   };
 
   return (
     <div className="max-w-4xl mx-auto mt-20 mb-20 px-6 py-10 bg-white rounded-2xl shadow-xl">
-      <h2 className="text-3xl sm:text-4xl font-bold text-blue-700 text-center mb-8">Upload Your Notes</h2>
+      {loading && (
+        <div className="fixed inset-0 flex items-center justify-center bac z-50">
+          <div className="w-10 h-10 border-4 border-t-transparent border-blue-600 rounded-full animate-spin"></div>
+        </div>
+      )}
+
+      <h2 className="text-3xl sm:text-4xl font-bold text-blue-700 text-center mb-8">
+        Upload Your Notes
+      </h2>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1">College Name</label>
+            <label className="block text-sm font-semibold text-gray-700 mb-1">
+              College Name
+            </label>
             <input
               type="text"
               name="college"
@@ -103,7 +121,9 @@ const UploadPage = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1">Degree</label>
+            <label className="block text-sm font-semibold text-gray-700 mb-1">
+              Degree
+            </label>
             <input
               type="text"
               name="degree"
@@ -116,28 +136,38 @@ const UploadPage = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1">Branch</label>
+            <label className="block text-sm font-semibold text-gray-700 mb-1">
+              Branch
+            </label>
             <Select
               options={branchOptions}
               onChange={handleBranchSelect}
-              value={branchOptions.find((opt) => opt.value === formData.branch) || null}
+              value={
+                branchOptions.find((opt) => opt.value === formData.branch) ||
+                null
+              }
               placeholder="e.g. Computer Science"
               isClearable
               styles={{
                 control: (base, state) => ({
                   ...base,
-                  borderRadius: '0.5rem',
-                  borderColor: state.isFocused ? '#3b82f6' : '#d1d5db', // blue-500 or gray-300
-                  boxShadow: state.isFocused ? '0 0 0 1.5px rgba(13, 102, 247, 0.76)' : 'none',
-                  padding: '1px 4px',
-                  minHeight: '42px',
-                  fontSize: '0.945rem', // text-sm
-                })}}
+                  borderRadius: "0.5rem",
+                  borderColor: state.isFocused ? "#3b82f6" : "#d1d5db", // blue-500 or gray-300
+                  boxShadow: state.isFocused
+                    ? "0 0 0 1.5px rgba(13, 102, 247, 0.76)"
+                    : "none",
+                  padding: "1px 4px",
+                  minHeight: "42px",
+                  fontSize: "0.945rem", // text-sm
+                }),
+              }}
             />
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1">Subject</label>
+            <label className="block text-sm font-semibold text-gray-700 mb-1">
+              Subject
+            </label>
             <input
               type="text"
               name="subject"
@@ -150,7 +180,9 @@ const UploadPage = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1">Semester</label>
+            <label className="block text-sm font-semibold text-gray-700 mb-1">
+              Semester
+            </label>
             <select
               name="semester"
               value={formData.semester}
@@ -160,13 +192,17 @@ const UploadPage = () => {
             >
               <option value="">Select</option>
               {[...Array(8)].map((_, i) => (
-                <option key={i} value={i + 1}>Sem {i + 1}</option>
+                <option key={i} value={i + 1}>
+                  Sem {i + 1}
+                </option>
               ))}
             </select>
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1">Title</label>
+            <label className="block text-sm font-semibold text-gray-700 mb-1">
+              Title
+            </label>
             <input
               type="text"
               name="title"
@@ -180,7 +216,9 @@ const UploadPage = () => {
         </div>
 
         <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-1">Upload File</label>
+          <label className="block text-sm font-semibold text-gray-700 mb-1">
+            Upload File
+          </label>
           <input
             type="file"
             name="file"

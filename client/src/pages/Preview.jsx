@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import * as pdfjsLib from "pdfjs-dist";
 import { useNavigate, useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { deductPoints } from "../features/users/userSlice";
+import { addDownloads, deductPoints } from "../features/users/userSlice";
 import toast from "react-hot-toast";
 import axios from "axios";
 import NotesCard from "../components/NotesCard";
@@ -12,6 +12,7 @@ import {
   FaThumbsDown,
   FaBookmark,
 } from "react-icons/fa";
+import { fetchNotes, updateThumb } from "../features/notes/noteSlice";
 
 // import 'pdfjs-dist/web/pdf_viewer.css';
 pdfjsLib.GlobalWorkerOptions.workerSrc =
@@ -21,30 +22,37 @@ const Preview = () => {
   const [showModal, setShowModal] = useState(false);
   const options = { year: "numeric", month: "long", day: "numeric" };
   const navigate = useNavigate();
-  const userPoints = useSelector((state) => state.user.user?.points);
-  const notes = useSelector((state) => state.note.notes);
-  const user = useSelector((state) => state.user.user);
+  const userPoints = useSelector((state) => state.user?.points);
+  const notes = useSelector((state) => state.note?.notes);
+  const user = useSelector((state) => state.user?.user);
+  const [loading, setLoading] = useState(false);
+
   const { id, branch } = useParams();
   const note = notes.find((note) => note._id === id);
 
   const url = note?.fileUrl;
   const dispatch = useDispatch();
-  const downloads = useSelector((state) => state.user.user?.downloads);
-  const hasPurchased = downloads?.includes(id) || note.user._id === user._id;
+  const downloads = useSelector((state) => state.user.downloads);
+  const uploads = useSelector((state) => state.user.uploads);
+
+  const hasPurchased = downloads?.some(note => note?._id === id) || uploads?.some(note => note?._id === id);
+   // 5 seconds
 
   const relatedNotes = notes.filter(
-    (note) => note.branch === branch && note._id !== id
+    (note) => note?.branch === branch && note?._id !== id
   );
 
   const confirmPurchase = async (e) => {
     // 🛑 Prevent default <a> behavior
-
+    setLoading(true);
+    
     if (!hasPurchased) {
       if (userPoints >= 10) {
         // Deduct points from the user
         dispatch(deductPoints(10));
         const { data } = await axios.post("/api/user/download", { id: id });
         if (data.success) {
+          dispatch(addDownloads(note));
           toast.success("Purchase successful!");
         } else {
           toast.error(data.message);
@@ -52,12 +60,13 @@ const Preview = () => {
       } else {
         toast.error("Not enough coins");
         setShowModal(false);
+        setLoading(false);
         return;
       }
     }
 
     setShowModal(false);
-
+  
     // Trigger download manually
     fetch(note.fileUrl)
       .then((response) => response.blob())
@@ -71,10 +80,12 @@ const Preview = () => {
         document.body.removeChild(link);
         window.URL.revokeObjectURL(url);
         toast.success("Start downloading!!!");
+
       })
       .catch(() => {
         toast.error("Failed to download file.");
       });
+      setLoading(false);
   };
 
   const [upvoted, setUpvoted] = useState(false);
@@ -87,33 +98,31 @@ const Preview = () => {
   const fileInputRef = React.useRef(null);
   const [pagesToRender, setPagesToRender] = useState([]);
 
-  const [purchased, setPurchased] = useState(false);
   const [show, setShow] = useState(false);
 
-  const [like, setLike] = useState(note?.like.length);
-  const [dislike, setDislike] = useState(note?.dislike.length);
+
 
   const handleClick = async (event) => {
+    setLoading(true);
     try {
       const { data } = await axios.post(`/api/note/${note._id}`, {
         id: user._id,
         event,
       });
       if (data.success) {
+         dispatch(updateThumb({id , note : data.note}))
       } else toast.error(data.message);
-      // console.log(data.note)
-      setLike(data.note.like.length);
-      setDislike(data.note.dislike.length);
+      
     } catch (error) {
-      toast.error(error.meassage);
+      toast.error(error.message);
     }
+    setLoading(false);
   };
 
   useEffect(() => {
     const timer = setTimeout(() => {
       setShow(true);
     }, 1200); // 5 seconds
-
     return () => clearTimeout(timer);
   }, []);
 
@@ -127,47 +136,6 @@ const Preview = () => {
       return Math.min(prev + 1, totalPages);
     });
   const goToPrevPage = () => setCurrentPage((prev) => Math.max(prev - 1, 1));
-
-  // useEffect(() => {
-  //   if (!url) return;
-  //   // Load the PDF document
-  //   const loadPdf = async () => {
-  //     const loadingTask = pdfjsLib.getDocument(url);
-  //     const pdf = await loadingTask.promise;
-  //     setPdfDoc(pdf);
-  //     setTotalPages(pdf.numPages);
-
-  //     const pageLimit = Math.min(4, pdf.numPages);
-  //     const pagesArray = [];
-
-  //     for (let i = 1; i <= pageLimit; i++) {
-  //       const page = await pdf.getPage(i);
-  //       pagesArray.push(page);
-  //     }
-
-  //     setPagesToRender(pagesArray);
-  //   };
-
-  //   loadPdf();
-  // }, [url]);
-
-  // Render the loaded pages on canvas
-  //  useEffect(() => {
-  //   pagesToRender.forEach(async (page, index) => {
-  //     const canvas = canvasRefs.current[index];
-  //     const context = canvas.getContext("2d");
-
-  //     // ✅ Fix rotation
-  //     const viewport = page.getViewport({ scale, rotation: page.rotate });
-
-  //     canvas.height = viewport.height;
-  //     canvas.width = viewport.width;
-
-  //     context.clearRect(0, 0, canvas.width, canvas.height);
-
-  //     await page.render({ canvasContext: context, viewport }).promise;
-  //   });
-  // }, [pagesToRender, scale]);
 
   // Load PDF document
   useEffect(() => {
@@ -191,7 +159,7 @@ const Preview = () => {
     const renderPage = async () => {
       if (!pdfDoc) return;
       const page = await pdfDoc.getPage(currentPage);
-      const viewport = page.getViewport({ scale: 1.5 });
+      const viewport = page.getViewport({ scale: 3 });
       const canvas = canvasRef.current;
       const context = canvas.getContext("2d");
       canvas.height = viewport.height;
@@ -208,14 +176,16 @@ const Preview = () => {
     renderPage();
   }, [pdfDoc, currentPage]);
 
-  const handlePurchase = () => {
-    // Deduct points here (API call or Redux logic)
-    // If success:
-    setPurchased(true);
-  };
-
   return (
     <div className="max-w-6xl mx-auto mt-10 p-6 bg-white space-y-3">
+      {/* Loading */}
+
+      {loading && (
+        <div className="fixed inset-0 flex items-center justify-center bac z-50">
+          <div className="w-10 h-10 border-4 border-t-transparent border-blue-600 rounded-full animate-spin"></div>
+        </div>
+      )}
+
       {/* Title */}
       <div className="flex justify-between items-center ">
         <h1 className="text-3xl font-bold text-blue-700">{note?.title}</h1>
@@ -227,7 +197,7 @@ const Preview = () => {
             className="flex cursor-pointer items-center gap-1 px-3 py-2 rounded-full border text-gray-400 border-gray-200"
           >
             <FaThumbsUp className="text-green-500 text-10" size={20} />
-            <span className="text-lg">{like}</span>
+            <span  className="text-lg">{note?.like.length}</span>
           </div>
 
           <div
@@ -236,7 +206,7 @@ const Preview = () => {
             className="flex cursor-pointer items-center gap-1 px-3 py-2 rounded-full border text-gray-400 border-gray-200"
           >
             <FaThumbsDown className="text-red-500" size={20} />
-            <span className="text-lg">{dislike}</span>
+            <span  className="text-lg">{note.dislike.length}</span>
           </div>
 
           <button

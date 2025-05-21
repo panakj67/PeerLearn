@@ -9,6 +9,10 @@ const initialState = {
     isLogin : false,
     points : 0,
     user : null,
+    downloads : [],
+    uploads : [],
+    visible : false,
+    messages : []
 }
 
 export const userSlice = createSlice({
@@ -17,8 +21,32 @@ export const userSlice = createSlice({
     reducers : {
         setUser: (state, action) => {
             state.user = action.payload;
-            state.notes = action.payload.notes;
             state.points = action.payload.points;
+            state.downloads = action.payload.downloads || [];
+            state.uploads = action.payload.uploads || [];
+            state.messages = action.payload.messages || [];
+        },
+
+        setMessages: (state, action) => { 
+            state.messages.push(action.payload);
+        },   
+        clearMessages: (state) => {
+            state.messages = [];
+        }, 
+
+        toggleVisible: (state) => {
+            state.visible = !state.visible;
+        },
+
+        addUploads: (state, action) => {
+            state.uploads.push(action.payload);
+        },
+        addDownloads: (state, action) => {
+            state.downloads.push(action.payload);
+        },
+
+        removeFromUploads : (state, action) => {
+            state.uploads = state.uploads.filter((note) => note._id !== action.payload);
         },
         
         showLogin : (state) => {
@@ -45,5 +73,6 @@ export const userSlice = createSlice({
     }
 })
 
-export const { showLogin ,hideLogin, setUser, addPoints, userLogin, userLogout, deductPoints } = userSlice.actions;
+export const { showLogin ,hideLogin, setUser,
+    addUploads, addDownloads, addPoints, removeFromUploads, clearMessages, userLogin,toggleVisible, setMessages, userLogout, deductPoints } = userSlice.actions;
 export default userSlice.reducer;
