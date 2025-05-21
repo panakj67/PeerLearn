@@ -25,14 +25,19 @@ app.use(express.urlencoded({ extended: true }));
 const allowedOrigins = [
   process.env.FRONTEND_URL,
   "https://peer-learn.vercel.app",
-   "https://peer-learn-git-clean-version-pankaj-kumars-projects-a2ff3a66.vercel.app/",
   "https://peer-learn-git-main-pankaj-kumars-projects-a2ff3a66.vercel.app",
   "https://peer-learn-hcaoc1416-pankaj-kumars-projects-a2ff3a66.vercel.app",
 ];
 
 
 app.use(cors({
-    origin: '*',
+    origin: function (origin, callback) {
+        if (!origin || allowedOrigins.includes(origin)) {
+          callback(null, true);
+        } else {
+          callback(new Error("Not allowed by CORS"));
+        }
+      }, 
     credentials: true, 
 }))
 
