@@ -202,7 +202,7 @@ const Preview = () => {
     const renderPage = async () => {
       if (!pdfDoc) return;
       const page = await pdfDoc.getPage(currentPage);
-      const viewport = page.getViewport({ scale: 1.5 });
+      const viewport = page.getViewport({ scale: 2.5 });
       const canvas = canvasRef.current;
       const context = canvas.getContext("2d");
       canvas.height = viewport.height;
