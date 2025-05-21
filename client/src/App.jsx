@@ -79,10 +79,7 @@ const App = () => {
 
   useEffect(() => {
     getNotes();
-     // 1.5s delay for smooth transition
   }, [notes]);
-
-  // console.log(import.meta.env.VITE_BACKEND_URL);
 
   const visible = useSelector((state) => state.user?.visible);
 
