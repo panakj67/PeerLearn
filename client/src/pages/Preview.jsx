@@ -109,12 +109,13 @@ const Preview = () => {
         event,
       });
       if (data.success) {
-      } else toast.error(data.message);
-      // console.log(data.note)
-      setLike(data.note.like.length);
+        setLike(data.note.like.length);
       setDislike(data.note.dislike.length);
+      } else toast.error(data.message);
+      console.log(data.note.like, data.note.dislike);
+      
     } catch (error) {
-      toast.error(error.meassage);
+      toast.error(error.message);
     }
     setLoading(false);
   };

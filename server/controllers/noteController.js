@@ -74,28 +74,31 @@ export const handleEvent = async (req, res) => {
 
     const note = await noteModel.findById(noteId);
 
+    if (!note) {
+      return res.status(404).json({ success: false, message: "Note not found" });
+    }
+
     const liked = note.like.includes(id);
     const disliked = note.dislike.includes(id);
 
     if (event === "like") {
       if (liked) {
         note.like.pull(id);
-        await note.save();
       } else {
         note.like.push(id);
-        await note.save();
+        if (disliked) {
+          note.dislike.pull(id);
+        }
       }
-      if (disliked) {
-        note.dislike.pull(id);
-      }
+      
     } else if (event === "dislike") {
       if (disliked) {
         note.dislike.pull(id);
       } else {
         note.dislike.push(id);
-      }
-      if (liked) {
-        note.like.pull(id);
+        if (liked) {
+          note.like.pull(id);
+        }
       }
     }
 
