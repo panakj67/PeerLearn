@@ -11,7 +11,7 @@ export const test = (req, res) => {
 export const login = async (req, res) => {
     const { email, password } = req.body;
     try {
-        const user = await userModel.findOne({ email });
+        const user = await userModel.findOne({ email }).populate('uploads').populate('downloads');
         if (!user) {
             return res.json({
                 success: false,
@@ -144,7 +144,7 @@ export const updateUser = async (req, res) => {
             branch,
             semester,
             profileImg: url || ""
-        }, { new: true });
+        }, { new: true }).populate('downloads').populate('uploads');
 
         res.json({ success: true, message: "User updated successfully!", user });
     } catch (error) {

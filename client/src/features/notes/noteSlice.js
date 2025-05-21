@@ -13,10 +13,15 @@ export const noteSlice = createSlice({
             state.searchTerm = action.payload
         },
         fetchNotes : (state, action) => {
-            state.notes = action.payload
+            state.notes = action.payload;
         },
         addNotes : (state, action) => {
             state.notes.push(action.payload)
+        },
+        updateThumb : (state, action) => {
+            state.notes = state.notes.map((note) => {
+                return note._id === action.payload.id ? action.payload.note : note;
+            })
         },
         deleteNotes : (state, action) => {
             state.notes = state.notes.filter((note) => note._id !== action.payload);
@@ -24,5 +29,5 @@ export const noteSlice = createSlice({
     }
 })
 
-export const { setSearch, fetchNotes, deleteNotes, addNotes } = noteSlice.actions;
+export const { setSearch, fetchNotes, updateThumb, deleteNotes, addNotes } = noteSlice.actions;
 export default noteSlice.reducer;

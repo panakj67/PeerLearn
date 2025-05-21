@@ -30,7 +30,9 @@ export const createNotes = async (req, res) => {
     const firstPageImageUrl = fileUrl.replace(".pdf", ".jpg") + "#page=1";
     console.log("firstPageImageUrl", firstPageImageUrl);
 
-    const note = await noteModel.create({
+    const user = await userModel.findById(req.user.id);
+
+    let note = await noteModel.create({
       title,
       college,
       degree,
@@ -42,7 +44,8 @@ export const createNotes = async (req, res) => {
       user: req.user.id,
     });
 
-    const user = await userModel.findById(req.user.id);
+    note = await note.populate("user");
+
     user.uploads.push(note._id);
     user.points += 10;
     await user.save();
@@ -72,7 +75,7 @@ export const handleEvent = async (req, res) => {
     const { id, event } = req.body;
     const { noteId } = req.params;
 
-    const note = await noteModel.findById(noteId);
+    const note = await noteModel.findById(noteId).populate("user");
 
     if (!note) {
       return res.status(404).json({ success: false, message: "Note not found" });

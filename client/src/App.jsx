@@ -43,6 +43,7 @@ const App = () => {
 
   // api()
   const user = useSelector((state) => state.user?.user);
+
   const showUserLogin = useSelector((state) => state.user.showUserLogin);
   const [loading, setLoading] = useState(true);
   const dispatch = useDispatch();
@@ -62,6 +63,7 @@ const App = () => {
     try {
       const { data } = await axios.get("/api/user/is-auth");
       if (data.success) {
+        toast.success("User verified !!")
         dispatch(setUser(data.user));
       }
     } catch (error) {
@@ -69,13 +71,17 @@ const App = () => {
     }
   };
 
+  const notes = useSelector((state) => state.note.notes);
+
+  setTimeout(() => {
+      setLoading(false);
+    }, 1000);
+
   useEffect(() => {
     getNotes();
-    fetchUser();
-    setTimeout(() => {
-      setLoading(false);
-    }, 1000); // 1.5s delay for smooth transition
-  }, []);
+     // 1.5s delay for smooth transition
+  }, [notes]);
+
 
   const visible = useSelector((state) => state.user?.visible);
 

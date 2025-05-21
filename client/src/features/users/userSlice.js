@@ -21,11 +21,10 @@ export const userSlice = createSlice({
     reducers : {
         setUser: (state, action) => {
             state.user = action.payload;
-            state.notes = action.payload.notes;
             state.points = action.payload.points;
-            state.downloads = action.payload.downloads;
-            state.uploads = action.payload.uploads;
-            state.messages = action.payload.messages;
+            state.downloads = action.payload.downloads || [];
+            state.uploads = action.payload.uploads || [];
+            state.messages = action.payload.messages || [];
         },
 
         setMessages: (state, action) => { 

@@ -53,7 +53,7 @@ const StudentProfile = () => {
             </div>
             <button
               onClick={() => navigate("/profile/edit")}
-              className="mt-6 sm:mt-0 px-6 py-2 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold hover:scale-105 transition-transform shadow-lg"
+              className="mt-6 sm:mt-0 px-6 py-2 cursor-pointer rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold hover:scale-105 transition-transform shadow-lg"
             >
               ✏️ Edit Profile
             </button>

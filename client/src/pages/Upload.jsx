@@ -79,13 +79,11 @@ const UploadPage = () => {
           semester: "",
           file: null,
         });
-        const userRes = await axios.get("/api/user/is-auth");
         navigate("/");
-        dispatch(addNotes(userRes.data.note));
         
-        dispatch(addUploads(userRes.data.note));
+        dispatch(addUploads(data.note));
         dispatch(addPoints(10));
-        window.location.reload();
+
       } else toast.error(data.message);
     } catch (error) {
       toast.error(error.message);
