@@ -10,7 +10,7 @@ noteRouter.post('/create-notes', upload.single('file'), authUser, createNotes);
 noteRouter.get('/get', getNotes);
 noteRouter.post('/:noteId', handleEvent);
 noteRouter.delete('/delete/:id', authUser, deleteNote);
-// noteRouter.get('/temp', temp);
+noteRouter.get('/temp', temp);
 
 
 

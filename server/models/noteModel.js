@@ -23,6 +23,8 @@ const noteSchema = new mongoose.Schema({
         required : true,
     },
 
+    hashcode : String,
+
     semester : {
         type : Number,
         required : true,

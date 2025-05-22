@@ -1,10 +1,20 @@
 import noteModel from "../models/noteModel.js";
 import cloudinary from "../config/cloudinary.js";
 import userModel from "../models/userModel.js";
+import fs from 'fs'
+import crypto from "crypto"
 
 export const testNote = (req, res) => {
   res.send("Note routes is working");
 };
+
+const getFileHash = (filePath) => {
+    const fileBuffer = fs.readFileSync(filePath)
+    const hashSum = crypto.createHash('sha256')
+    hashSum.update(fileBuffer)
+    const hex = hashSum.digest('hex')
+    return hex;
+}
 
 export const createNotes = async (req, res) => {
   try {
@@ -13,6 +23,14 @@ export const createNotes = async (req, res) => {
 
     if (!file) {
       return res.json({ success: false, message: "No file provided" });
+    }
+
+    const hashcode = getFileHash(file.path);
+
+    const dupliacte = await noteModel.findOne({ hashcode });
+    if(dupliacte){
+       fs.unlinkSync(file.path);
+       res.json({success : false, message : "Duplicate document detected!!"})
     }
 
     const result = await cloudinary.uploader.upload(file.path, {
@@ -41,6 +59,7 @@ export const createNotes = async (req, res) => {
       subject,
       image: firstPageImageUrl,
       fileUrl,
+      hashcode,
       user: req.user.id,
     });
 
@@ -113,8 +132,11 @@ export const handleEvent = async (req, res) => {
 };
 
 export const temp = async (req, res) => {
-  console.log("hui");
-  res.json({ message: "Hui Hui Hui" });
+    const result = await noteModel.updateMany(
+        { hashCode: { $exists: false } },  // users without messages field
+        { $set: { heshCode: String } }
+      );
+    res.json({ success: true, message: "Updated successfully!", result });
 };
 
 export const deleteNote = async (req, res) => {
