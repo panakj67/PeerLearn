@@ -38,9 +38,9 @@ export const userSlice = createSlice({
         toggleVisible: (state) => {
             state.visible = !state.visible;
         },
-        
-        toggleChatVisible: (state) => {
-            state.chatVisible = !state.chatVisible;
+
+        toggleChatVisible: (state, action) => {
+            state.chatVisible = action.payload;
         },
 
         addUploads: (state, action) => {

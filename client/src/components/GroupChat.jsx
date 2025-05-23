@@ -51,7 +51,7 @@ const GroupChat = () => {
       setGroupMsg((prev) => [...prev, data]);
     });
 
-    dispatch(toggleChatVisible());
+    dispatch(toggleChatVisible(true));
 
     return () => {
       socket.off("receive-message");
@@ -101,7 +101,7 @@ const GroupChat = () => {
         </div>
         <button
           className="text-white cursor-pointer text-2xl"
-          onClick={() => dispatch(toggleChatVisible())}
+          onClick={() => dispatch(toggleChatVisible(false))}
         >
           ×
         </button>

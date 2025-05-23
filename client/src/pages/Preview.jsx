@@ -194,7 +194,7 @@ const Preview = () => {
       {chatVisible ? <GroupChat /> 
         : (
           <div
-          onClick={() => dispatch(toggleChatVisible())} // your function to toggle chatbot visibility
+          onClick={() => dispatch(toggleChatVisible(true))} // your function to toggle chatbot visibility
           className="fixed bottom-27 right-6 cursor-pointer rounded-full overflow-hidden  p-1"
         >
           <img  className="h-17 w-17 object-cover"
