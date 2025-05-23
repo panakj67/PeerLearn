@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { useDispatch, useSelector } from "react-redux";
-import { toggleVisible, setMessages, clearMessages } from "../features/users/userSlice";
+import { toggleAiVisible, setMessages, clearMessages } from "../features/users/userSlice";
 import { FaTrash } from "react-icons/fa";
 import toast from "react-hot-toast";
+import { v4 as uuidv4 } from 'uuid'; 
 
 const AiChatBot = () => {
   // const [messages, setMessages] = useState([]);
@@ -11,13 +12,22 @@ const AiChatBot = () => {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef(null);
-  const visible = useSelector((state) => state.user?.visible);
+  const Aivisible = useSelector((state) => state.user?.AiVisible);
   const [show, setShow] = useState(false);
   const dispatch = useDispatch();
   const user = useSelector((state) => state.user?.user);
 
   const messages = useSelector((state) => state.user?.messages);
-  console.log("messages", messages);
+  // console.log("messages", messages);
+
+  const [sessionId, setSessionId] = useState(() => {
+  let id = localStorage.getItem("chat_session_id");
+  if (!id) {
+    id = uuidv4();
+    localStorage.setItem("chat_session_id", id);
+  }
+  return id;
+});
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -33,7 +43,7 @@ const AiChatBot = () => {
     setLoading(true);
 
     try {
-      const res = await axios.post("/api/chat", { prompt: input });
+      const res = await axios.post("/api/chat", { prompt: input, sessionId });
       const botMessage = {
         sender: "bot",
         text: res.data.text,
@@ -56,7 +66,7 @@ const AiChatBot = () => {
       dispatch(
         setMessages({
           sender: "bot",
-          text: "Something went wrong. Please try again.",
+          text: error.message,
         })
       );
     } finally {
@@ -72,7 +82,10 @@ const AiChatBot = () => {
     dispatch(clearMessages());
     try {
       const {data} = await axios.post('/api/user/clear');
-      if(data.success) toast.success(data.message);
+      if(data.success) {
+        toast.success(data.message);
+        localStorage.removeItem('chat_session_id')
+      }
       else toast.error(data.message)
     } catch (error) {
       console.log(error.message);
@@ -80,6 +93,7 @@ const AiChatBot = () => {
     }
     setShow(false);
   }
+  
 
   return (
     <div className="fixed z-50 bottom-1 right-4 w-92 h-[99%] rounded-2xl shadow-lg overflow-hidden bg-white font-sans flex flex-col border border-gray-300">
@@ -112,7 +126,7 @@ const AiChatBot = () => {
         </div>
         <button
           className="text-white cursor-pointer text-2xl"
-          onClick={() => dispatch(toggleVisible())}
+          onClick={() => dispatch(toggleAiVisible())}
         >
           ×
         </button>

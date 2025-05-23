@@ -80,10 +80,9 @@ const UploadPage = () => {
           file: null,
         });
         navigate("/");
-        
+
         dispatch(addUploads(data.note));
         dispatch(addPoints(10));
-
       } else toast.error(data.message);
     } catch (error) {
       toast.error(error.message);
@@ -160,6 +159,16 @@ const UploadPage = () => {
                   minHeight: "42px",
                   fontSize: "0.945rem", // text-sm
                 }),
+                option: (base, state) => ({
+                  ...base,
+                  backgroundColor: state.isSelected
+                    ? "#e0f0ff" // light blue background for selected option
+                    : state.isFocused
+                    ? "transparent" // subtle grey on hover
+                    : "transparent",
+                  color: "#333",
+                  cursor: "pointer",
+                }),
               }}
             />
           </div>
@@ -227,6 +236,7 @@ const UploadPage = () => {
             className="block text-sm text-gray-600 file:mr-4 file:py-2 file:px-6 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700"
             required
           />
+          <p className="text-red-600 text-sm">Maximum allowed file size is 10 MB!!</p>
         </div>
 
         <div className="text-center">

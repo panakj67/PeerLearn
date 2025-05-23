@@ -22,9 +22,10 @@ import BranchNotes from "./pages/BranchNotes";
 // axiosConfig.js or directly in index.js / App.js
 import axios from "axios";
 import { fetchNotes } from "./features/notes/noteSlice";
-import { setUser, toggleVisible } from "./features/users/userSlice";
+import { setUser, toggleAiVisible } from "./features/users/userSlice";
 import EditProfile from "./components/EditProfile";
 import AiChatBot from "./components/AiChatBot";
+
 axios.defaults.withCredentials = true;
 axios.defaults.baseURL =
   import.meta.env.VITE_BACKEND_URL ||
@@ -81,7 +82,7 @@ const App = () => {
     getNotes();
   }, [notes]);
 
-  const visible = useSelector((state) => state.user?.visible);
+  const Aivisible = useSelector((state) => state.user?.AiVisible);
 
   if (loading)
     return (
@@ -103,9 +104,9 @@ const App = () => {
       </button> */}
       <Toaster />
       <Navbar />
-      {!visible && (
+      {!Aivisible && (
         <div
-          onClick={() => dispatch(toggleVisible())} // your function to toggle chatbot visibility
+          onClick={() => dispatch(toggleAiVisible())} // your function to toggle chatbot visibility
           className="fixed bottom-6 right-6 cursor-pointer rounded-full p-1 
              bg-gradient-to-r from-purple-500 via-pink-500 to-red-500"
         >
@@ -113,9 +114,11 @@ const App = () => {
            src="https://www.shutterstock.com/image-vector/chat-bot-icon-virtual-smart-600nw-2478937553.jpg" alt="" />
         </div>
       )}
+      
 
       {showUserLogin && <Login />}
-      {visible && <AiChatBot />}
+      {Aivisible && <AiChatBot />}
+      
       <ScrollToTop />
       <Routes>
         <Route path="/" element={<Home />}></Route>

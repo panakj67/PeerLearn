@@ -11,7 +11,8 @@ const initialState = {
     user : null,
     downloads : [],
     uploads : [],
-    visible : false,
+    AiVisible : false,
+    chatVisible : false,
     messages : []
 }
 
@@ -34,8 +35,11 @@ export const userSlice = createSlice({
             state.messages = [];
         }, 
 
-        toggleVisible: (state) => {
-            state.visible = !state.visible;
+        toggleAiVisible: (state) => {
+            state.AiVisible = !state.AiVisible;
+        },
+        toggleChatVisible: (state) => {
+            state.chatVisible = !state.chatVisible;
         },
 
         addUploads: (state, action) => {
@@ -74,5 +78,5 @@ export const userSlice = createSlice({
 })
 
 export const { showLogin ,hideLogin, setUser,
-    addUploads, addDownloads, addPoints, removeFromUploads, clearMessages, userLogin,toggleVisible, setMessages, userLogout, deductPoints } = userSlice.actions;
+    addUploads, addDownloads, addPoints, removeFromUploads, clearMessages, userLogin,toggleAiVisible, toggleChatVisible, setMessages, userLogout, deductPoints } = userSlice.actions;
 export default userSlice.reducer;

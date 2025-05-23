@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import * as pdfjsLib from "pdfjs-dist";
 import { useNavigate, useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { addDownloads, deductPoints } from "../features/users/userSlice";
+import { addDownloads, deductPoints, toggleChatVisible } from "../features/users/userSlice";
 import toast from "react-hot-toast";
 import axios from "axios";
 import NotesCard from "../components/NotesCard";
@@ -13,6 +13,7 @@ import {
   FaBookmark,
 } from "react-icons/fa";
 import { fetchNotes, updateThumb } from "../features/notes/noteSlice";
+import GroupChat from "../components/GroupChat";
 
 // import 'pdfjs-dist/web/pdf_viewer.css';
 pdfjsLib.GlobalWorkerOptions.workerSrc =
@@ -35,9 +36,9 @@ const Preview = () => {
   const downloads = useSelector((state) => state.user.downloads);
   const uploads = useSelector((state) => state.user.uploads);
 
-  const hasPurchased = downloads?.some(note => note?._id === id) || uploads?.some(note => note?._id === id);
+  const hasPurchased = downloads?.some(note => note?._id === id) || uploads?.find(note => note?._id === id);
    // 5 seconds
-
+  
   const relatedNotes = notes.filter(
     (note) => note?.branch === branch && note?._id !== id
   );
@@ -176,6 +177,9 @@ const Preview = () => {
     renderPage();
   }, [pdfDoc, currentPage]);
 
+  const chatVisible = useSelector((state) => state.user?.chatVisible);
+
+
   return (
     <div className="max-w-6xl mx-auto mt-10 p-6 bg-white space-y-3">
       {/* Loading */}
@@ -185,6 +189,17 @@ const Preview = () => {
           <div className="w-10 h-10 border-4 border-t-transparent border-blue-600 rounded-full animate-spin"></div>
         </div>
       )}
+
+      {chatVisible ? <GroupChat /> 
+        : (
+          <div
+          onClick={() => dispatch(toggleChatVisible())} // your function to toggle chatbot visibility
+          className="fixed bottom-27 right-6 cursor-pointer rounded-full overflow-hidden  p-1"
+        >
+          <img  className="h-17 w-17 object-cover"
+           src="https://cdn-icons-png.freepik.com/512/6388/6388074.png" alt="" />
+        </div>
+        )}
 
       {/* Title */}
       <div className="flex justify-between items-center ">

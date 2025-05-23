@@ -39,7 +39,7 @@ const Navbar = () => {
        const {data} = await axios.get('/api/user/is-auth')
        if(data.success){
           dispatch(setUser(data.user));
-          console.log(data.user);
+          // console.log(data.user);
        }   
     } catch (error) {
        toast.error(error.message)
