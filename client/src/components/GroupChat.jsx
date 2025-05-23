@@ -2,11 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
-import {
-  toggleChatVisible,
-  setMessages,
-  clearMessages,
-} from "../features/users/userSlice";
+import { toggleChatVisible } from "../features/users/userSlice";
 
 import { io } from "socket.io-client";
 import toast from "react-hot-toast";
@@ -39,7 +35,14 @@ const GroupChat = () => {
 
     fetchMessages();
 
-    socket.emit("join-room", id);
+    if (socket && socket.connected) {
+      socket.emit("join-room", id);
+      console.log("joined room", id);
+    } else {
+      console.warn("Socket not connected when trying to join room.");
+    }
+
+    // socket.emit("join-room", id);
 
     socket.on("receive-message", (data) => {
       console.log(data);
