@@ -10,8 +10,10 @@ import {
 
 import { io } from "socket.io-client";
 import toast from "react-hot-toast";
+
 const socket = io("https://peerlearn.onrender.com", {
   withCredentials: true,
+  transports: ["websocket"],
 });
 
 const GroupChat = () => {
