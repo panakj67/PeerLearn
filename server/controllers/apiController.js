@@ -68,7 +68,7 @@ const generateContent = async (req, res) => {
     const response = await chat.sendMessage({
       message: prompt,
       config: {
-        maxOutputTokens: 180,
+        maxOutputTokens: 280,
         temperature: 0.1,
       },
     });
