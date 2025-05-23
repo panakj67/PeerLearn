@@ -10,7 +10,7 @@ import {
 
 import { io } from "socket.io-client";
 import toast from "react-hot-toast";
-const socket = io("http://localhost:3000", {
+const socket = io("https://peerlearn.onrender.com", {
   withCredentials: true,
 });
 
