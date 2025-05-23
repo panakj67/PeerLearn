@@ -31,6 +31,12 @@ app.use(express.json())
 app.use(cookieParser())
 app.use(express.urlencoded({ extended: true }));
 
+app.use((req, res, next) => {
+  console.log("🌐 Incoming request origin:", req.headers.origin);
+  next();
+});
+
+
 
 const allowedOrigins = [
   process.env.FRONTEND_URL,
