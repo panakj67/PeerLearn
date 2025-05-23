@@ -15,14 +15,10 @@ import { initSocket } from './sockets/socket.js';
 
 
 
-
 const app = express()
 const server = http.createServer(app);
 
-// const io = new Server(server, {
-//    origin: "http://localhost:5173", // ✅ or use process.env.FRONTEND_URL
-//     credentials: true,
-// });
+
 
 connectDB()
 

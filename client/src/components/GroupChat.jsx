@@ -7,7 +7,7 @@ import { toggleChatVisible } from "../features/users/userSlice";
 import { io } from "socket.io-client";
 import toast from "react-hot-toast";
 
-const socket = io("https://peerlearn.onrender.com", {
+const socket = io(import.meta.env.VITE_BACKEND_URL, {
   withCredentials: true,
   transports: ["websocket"],
 });
@@ -37,7 +37,7 @@ const GroupChat = () => {
 
     if (socket && socket.connected) {
       socket.emit("join-room", id);
-      console.log("joined room", id);
+    //   console.log("joined room", id);
     } else {
       console.warn("Socket not connected when trying to join room.");
     }
@@ -45,7 +45,7 @@ const GroupChat = () => {
     // socket.emit("join-room", id);
 
     socket.on("receive-message", (data) => {
-      console.log(data);
+    //   console.log(data);
 
       if (data.sender._id === user._id) return;
       setGroupMsg((prev) => [...prev, data]);

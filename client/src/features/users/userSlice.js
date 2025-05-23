@@ -1,6 +1,7 @@
 import { createSlice } from '@reduxjs/toolkit'
 import { useEffect } from 'react'
 import axios from 'axios'
+import { Bookmark } from 'lucide-react'
 
 
 
@@ -13,7 +14,9 @@ const initialState = {
     uploads : [],
     visible : false,
     chatVisible : false,
-    messages : []
+    messages : [],
+    loading : true,
+    bookmarks : []
 }
 
 export const userSlice = createSlice({
@@ -24,8 +27,21 @@ export const userSlice = createSlice({
             state.user = action.payload;
             state.points = action.payload.points;
             state.downloads = action.payload.downloads || [];
+            state.bookmarks = action.payload.bookmarks || [];
             state.uploads = action.payload.uploads || [];
             state.messages = action.payload.messages || [];
+        },
+
+        setLoading : (state, action) => {
+            state.loading = action.payload;
+        },
+
+        addToBookmark : (state, action) => {
+            state.bookmarks.push(action.payload)
+        },
+
+        removeFromBookmark : (state, action) => {
+            state.bookmarks = state.bookmarks.filter((note) => note._id !== action.payload)
         },
 
         setMessages: (state, action) => { 
@@ -78,7 +94,8 @@ export const userSlice = createSlice({
     }
 })
 
-export const { showLogin ,hideLogin, setUser,
+export const { showLogin ,hideLogin, setUser, setLoading,
+    addToBookmark, removeFromBookmark,
     addUploads, addDownloads, addPoints, removeFromUploads, clearMessages, userLogin,toggleVisible,
     toggleChatVisible, setMessages, userLogout, deductPoints } = userSlice.actions;
 export default userSlice.reducer;

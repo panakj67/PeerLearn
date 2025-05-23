@@ -22,9 +22,10 @@ import BranchNotes from "./pages/BranchNotes";
 // axiosConfig.js or directly in index.js / App.js
 import axios from "axios";
 import { fetchNotes } from "./features/notes/noteSlice";
-import { setUser, toggleVisible } from "./features/users/userSlice";
+import { setLoading, setUser, toggleVisible } from "./features/users/userSlice";
 import EditProfile from "./components/EditProfile";
 import AiChatBot from "./components/AiChatBot";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 axios.defaults.withCredentials = true;
 axios.defaults.baseURL =
@@ -32,24 +33,15 @@ axios.defaults.baseURL =
   "https://peer-learn-pankaj-kumars-projects-a2ff3a66.vercel.app";
 
 const App = () => {
-  // const api = () => {
-  //   useEffect(() => {
-  //     axios.get('/api/note/temp')
-  //       .then(res => console.log(res.data))
-  //       .catch(() => console.log('error'));
-  //   }, []);
 
-  //   return <div>Hello</div>;
-  // };
-
-  // api()
   const user = useSelector((state) => state.user?.user);
 
   const showUserLogin = useSelector((state) => state.user.showUserLogin);
-  const [loading, setLoading] = useState(true);
+  const loading = useSelector((state) => state.user.loading);
   const dispatch = useDispatch();
 
   const getNotes = async () => {
+    dispatch(setLoading(true));
     try {
       const { data } = await axios.get("/api/note/get");
       if (data.success) {
@@ -58,54 +50,43 @@ const App = () => {
     } catch (error) {
       toast.error(error.message);
     }
+    finally{
+      dispatch(setLoading(false));
+    }
   };
 
 
   const fetchUser = async () => {
+    dispatch(setLoading(true));
     try {
       const { data } = await axios.get("/api/user/is-auth");
       if (data.success) {
-        toast.success("User verified !!")
+        console.log(data);
+        
         dispatch(setUser(data.user));
       }
     } catch (error) {
       toast.error(error.message);
     }
+    finally{
+      dispatch(setLoading(false));
+    }
   };
 
   const notes = useSelector((state) => state.note.notes);
 
-  setTimeout(() => {
-      setLoading(false);
-    }, 1000);
-
   useEffect(() => {
+    fetchUser();
     getNotes();
-  }, [notes]);
+  }, []);
 
   const visible = useSelector((state) => state.user?.visible);
 
-  if (loading)
-    return (
-      <div
-        className="flex flex-col items-center text-blue-600 bg-gradient-to-tr from-white via-indigo-50 to-indigo-100
- justify-center h-screen"
-      >
-        <div className="w-16 h-16 border-4 border-dashed rounded-full animate-spin"></div>
-        <p className="mt-6 text-xl font-semibold animate-pulse tracking-wide">
-          Loading, please wait...
-        </p>
-      </div>
-    );
-
-    console.log(visible)
+    // console.log(visible)
 
 
   return (
     <div className="pt-8 px-28 ">
-      {/* <button onClick={() => toast.success("This is a success toast!")}>
-        Show Toast
-      </button> */}
       <Toaster />
       <Navbar />
       {!visible && (
@@ -126,12 +107,12 @@ const App = () => {
       <ScrollToTop />
       <Routes>
         <Route path="/" element={<Home />}></Route>
-        <Route path="/profile" element={<Profile />}>
+        <Route path="/profile" element={<ProtectedRoute element={<Profile />} />}>
           <Route path="edit" element={<EditProfile user={user} />}></Route>
         </Route>
         <Route
           path="/upload"
-          element={user ? <UploadPage /> : <Login />}
+          element={<ProtectedRoute element={<UploadPage />} />}
         ></Route>
         <Route path="/points" element={<PointSystem />}></Route>
         <Route path="/about" element={<About />}></Route>
@@ -140,14 +121,14 @@ const App = () => {
         <Route path="/browse" element={<BrowseNotesPage />}></Route>
         <Route
           path="/my-uploads"
-          element={user ? <MyUploads /> : <Login />}
+          element={<ProtectedRoute element={<MyUploads />} />}
         ></Route>
-        <Route path="/bookmark" element={<BookmarkedNotes />}></Route>
+        <Route path="/bookmark" element={<ProtectedRoute element={<BookmarkedNotes />} />}></Route>
         <Route path="/:branchName" element={<BranchNotes />} />
         <Route
           path="/:branch/:id"
-          element={user ? <Preview /> : <Login />}
-        ></Route>
+          element={<ProtectedRoute element={<Preview />} />}
+        />
       </Routes>
 
       <Footer />

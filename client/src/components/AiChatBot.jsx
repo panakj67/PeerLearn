@@ -29,7 +29,7 @@ const AiChatBot = () => {
   return id;
 });
 
- console.log(visible);
+//  console.log(visible);
  
 
   useEffect(() => {

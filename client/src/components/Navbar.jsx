@@ -105,7 +105,10 @@ const Navbar = () => {
             Point System
           </NavLink>
         </div>
-
+        
+        <NavLink to="/bookmark">
+            <img className="h-10 cursor-pointer" src="https://static.vecteezy.com/system/resources/previews/006/118/158/non_2x/illustration-of-realistic-star-shape-with-highlight-and-shadow-suitable-for-design-element-of-game-rating-and-award-achievement-3d-star-icon-free-vector.jpg" alt="" />
+        </NavLink>
         {/* Login / Profile */}
         {!user ? (
           <button

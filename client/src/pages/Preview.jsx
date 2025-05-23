@@ -1,14 +1,21 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import * as pdfjsLib from "pdfjs-dist";
 import { useNavigate, useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { addDownloads, deductPoints, toggleChatVisible } from "../features/users/userSlice";
+import {
+  addDownloads,
+  addToBookmark,
+  deductPoints,
+  removeFromBookmark,
+  setLoading,
+  toggleChatVisible,
+} from "../features/users/userSlice";
 import toast from "react-hot-toast";
 import axios from "axios";
 import NotesCard from "../components/NotesCard";
 import {
   FaDownload,
-  FaThumbsUp,
+  FaThumbsUp, FaStar,
   FaThumbsDown,
   FaBookmark,
 } from "react-icons/fa";
@@ -26,7 +33,8 @@ const Preview = () => {
   const userPoints = useSelector((state) => state.user?.points);
   const notes = useSelector((state) => state.note?.notes);
   const user = useSelector((state) => state.user?.user);
-  const [loading, setLoading] = useState(false);
+
+  const loading = useSelector((state) => state.user?.loading);
 
   const { id, branch } = useParams();
   const note = notes.find((note) => note._id === id);
@@ -36,17 +44,20 @@ const Preview = () => {
   const downloads = useSelector((state) => state.user.downloads);
   const uploads = useSelector((state) => state.user.uploads);
 
-  const hasPurchased = downloads?.some(note => note?._id === id) || uploads?.find(note => note?._id === id);
-   // 5 seconds
-  
+  const hasPurchased =
+    downloads?.some((note) => note?._id === id) ||
+    uploads?.find((note) => note?._id === id);
+  // 5 seconds
+
   const relatedNotes = notes.filter(
     (note) => note?.branch === branch && note?._id !== id
   );
 
   const confirmPurchase = async (e) => {
     // 🛑 Prevent default <a> behavior
-    setLoading(true);
-    
+    setShowModal(false);
+    dispatch(setLoading(true));
+
     if (!hasPurchased) {
       if (userPoints >= 10) {
         // Deduct points from the user
@@ -60,14 +71,11 @@ const Preview = () => {
         }
       } else {
         toast.error("Not enough coins");
-        setShowModal(false);
-        setLoading(false);
+        dispatch(setLoading(false));
         return;
       }
     }
 
-    setShowModal(false);
-  
     // Trigger download manually
     fetch(note.fileUrl)
       .then((response) => response.blob())
@@ -81,27 +89,18 @@ const Preview = () => {
         document.body.removeChild(link);
         window.URL.revokeObjectURL(url);
         toast.success("Start downloading!!!");
-
       })
       .catch(() => {
         toast.error("Failed to download file.");
       });
-      setLoading(false);
+    dispatch(setLoading(false));
   };
 
-  const [upvoted, setUpvoted] = useState(false);
-  const [reported, setReported] = useState(false);
   const [pdfDoc, setPdfDoc] = useState(null);
-  const [pageNum, setPageNum] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
-  const [scale, setScale] = useState(1.0);
   const canvasRef = useRef(null);
-  const fileInputRef = React.useRef(null);
-  const [pagesToRender, setPagesToRender] = useState([]);
 
   const [show, setShow] = useState(false);
-
-
 
   const handleClick = async (event) => {
     setLoading(true);
@@ -111,9 +110,8 @@ const Preview = () => {
         event,
       });
       if (data.success) {
-         dispatch(updateThumb({id , note : data.note}))
+        dispatch(updateThumb({ id, note: data.note }));
       } else toast.error(data.message);
-      
     } catch (error) {
       toast.error(error.message);
     }
@@ -128,7 +126,8 @@ const Preview = () => {
   }, []);
 
   const [currentPage, setCurrentPage] = useState(1);
-  const goToNextPage = () =>
+
+  const goToNextPage = useCallback(() => {
     setCurrentPage((prev) => {
       if (!hasPurchased && prev === 4) {
         setShow(true);
@@ -136,6 +135,8 @@ const Preview = () => {
       }
       return Math.min(prev + 1, totalPages);
     });
+  }, [hasPurchased, totalPages]);
+
   const goToPrevPage = () => setCurrentPage((prev) => Math.max(prev - 1, 1));
 
   // Load PDF document
@@ -154,6 +155,9 @@ const Preview = () => {
 
     loadPdf();
   }, [url]);
+
+  console.log(useSelector(state => state.user.bookmarks));
+  
 
   // Render current page
   useEffect(() => {
@@ -178,8 +182,31 @@ const Preview = () => {
   }, [pdfDoc, currentPage]);
 
   const chatVisible = useSelector((state) => state.user?.chatVisible);
-  console.log(chatVisible);
+  // console.log(chatVisible);
+
+  const [filled, setFilled] = useState(
+    useSelector(state => state.user.bookmarks.some(note => note._id === id))
+  );
+
   
+  const handleToggleBookmark = async () => {
+
+      const endpoint = filled ? "/api/user/removebookmark" : "/api/user/bookmark";
+
+      try {
+        const {data} = await axios.post(endpoint, {id});
+
+        if(filled) dispatch(removeFromBookmark(id))
+        else dispatch(addToBookmark(note))
+
+        if(data.success) toast.success(data.message);
+        else toast.error(data.message)
+      } catch (error) {
+        toast.error(error.message)
+      }finally{
+        setFilled(prev => !prev);
+      }
+  }
 
   return (
     <div className="max-w-6xl mx-auto mt-10 p-6 bg-white space-y-3">
@@ -191,29 +218,40 @@ const Preview = () => {
         </div>
       )}
 
-      {chatVisible ? <GroupChat /> 
-        : (
-          <div
+      {chatVisible ? (
+        <GroupChat />
+      ) : (
+        <div
           onClick={() => dispatch(toggleChatVisible(true))} // your function to toggle chatbot visibility
           className="fixed bottom-27 right-6 cursor-pointer rounded-full overflow-hidden  p-1"
         >
-          <img  className="h-17 w-17 object-cover"
-           src="https://cdn-icons-png.freepik.com/512/6388/6388074.png" alt="" />
+          <img
+            className="h-17 w-17 object-cover"
+            src="https://cdn-icons-png.freepik.com/512/6388/6388074.png"
+            alt=""
+          />
         </div>
-        )}
+      )}
 
       {/* Title */}
       <div className="flex justify-between items-center ">
         <h1 className="text-3xl font-bold text-blue-700">{note?.title}</h1>
 
         <div className="flex gap-6 items-center">
+          <button
+            onClick={handleToggleBookmark}
+            className="text-3xl focus:outline-none cursor-pointer"
+          >
+            <FaStar size={34} color={filled ? "gold" : "lightgray"} />
+          </button>
+
           <div
             name="like"
             onClick={() => handleClick("like")}
             className="flex cursor-pointer items-center gap-1 px-3 py-2 rounded-full border text-gray-400 border-gray-200"
           >
             <FaThumbsUp className="text-green-500 text-10" size={20} />
-            <span  className="text-lg">{note?.like.length}</span>
+            <span className="text-lg">{note?.like.length}</span>
           </div>
 
           <div
@@ -222,7 +260,7 @@ const Preview = () => {
             className="flex cursor-pointer items-center gap-1 px-3 py-2 rounded-full border text-gray-400 border-gray-200"
           >
             <FaThumbsDown className="text-red-500" size={20} />
-            <span  className="text-lg">{note.dislike.length}</span>
+            <span className="text-lg">{note.dislike.length}</span>
           </div>
 
           <button
@@ -273,7 +311,7 @@ const Preview = () => {
         <button
           onClick={goToPrevPage}
           className="bg-gradient-to-r from-red-200 to-orange-600 px-2 py-3 text-white rounded-full cursor-pointer"
-          disabled={currentPage === totalPages}
+          disabled={currentPage === 1}
         >
           Prev
         </button>
@@ -325,7 +363,7 @@ const Preview = () => {
 
               {/* Stylish Close Button */}
               <button
-                className="absolute top-3 right-4 text-gray-500 hover:text-red-500 text-xl"
+                className="absolute top-3 right-4 text-gray-500 hover:text-red-500 text-2xl"
                 onClick={() => setShowModal(false)}
               >
                 &times;

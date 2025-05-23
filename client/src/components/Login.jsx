@@ -4,7 +4,7 @@ import toast  from 'react-hot-toast';
 import axios from 'axios'
 
 import { useNavigate } from 'react-router-dom';
-import { hideLogin, setUser, userLogin } from '../features/users/userSlice';
+import { hideLogin, setLoading, setUser, userLogin } from '../features/users/userSlice';
 
 const Login = () => {
     const [state, setState] = React.useState("login");
@@ -17,8 +17,11 @@ const Login = () => {
 
     // const {setShowUserLogin, setUser, axios} = useContext(AppDataContext)
     const user = useSelector((state) => state.user.user)
+
     const onSubmitHandler = async (event) => {
+        dispatch(hideLogin())
         try {
+            dispatch(setLoading(true));
             event.preventDefault();
 
             const {data} = await axios.post(`/api/user/${state}`, { name, email, password})
@@ -29,11 +32,14 @@ const Login = () => {
                 }
                 // console.log(data.user);
                 dispatch(setUser(data.user))
-                dispatch(hideLogin())
+                
             }
             else toast.error(data.message);
         } catch (error) {
             toast.error(error.message)
+        }
+        finally{
+            dispatch(setLoading(false))
         }
         // window.location.reload();
     }
