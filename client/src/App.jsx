@@ -22,7 +22,7 @@ import BranchNotes from "./pages/BranchNotes";
 // axiosConfig.js or directly in index.js / App.js
 import axios from "axios";
 import { fetchNotes } from "./features/notes/noteSlice";
-import { setUser, toggleAiVisible } from "./features/users/userSlice";
+import { setUser, toggleVisible } from "./features/users/userSlice";
 import EditProfile from "./components/EditProfile";
 import AiChatBot from "./components/AiChatBot";
 
@@ -60,6 +60,7 @@ const App = () => {
     }
   };
 
+
   const fetchUser = async () => {
     try {
       const { data } = await axios.get("/api/user/is-auth");
@@ -82,7 +83,7 @@ const App = () => {
     getNotes();
   }, [notes]);
 
-  const Aivisible = useSelector((state) => state.user?.AiVisible);
+  const visible = useSelector((state) => state.user?.visible);
 
   if (loading)
     return (
@@ -97,6 +98,9 @@ const App = () => {
       </div>
     );
 
+    console.log(visible)
+
+
   return (
     <div className="pt-8 px-28 ">
       {/* <button onClick={() => toast.success("This is a success toast!")}>
@@ -104,9 +108,9 @@ const App = () => {
       </button> */}
       <Toaster />
       <Navbar />
-      {!Aivisible && (
+      {!visible && (
         <div
-          onClick={() => dispatch(toggleAiVisible())} // your function to toggle chatbot visibility
+          onClick={() => dispatch(toggleVisible())} // your function to toggle chatbot visibility
           className="fixed bottom-6 right-6 cursor-pointer rounded-full p-1 
              bg-gradient-to-r from-purple-500 via-pink-500 to-red-500"
         >
@@ -117,7 +121,7 @@ const App = () => {
       
 
       {showUserLogin && <Login />}
-      {Aivisible && <AiChatBot />}
+      {visible && <AiChatBot />}
       
       <ScrollToTop />
       <Routes>

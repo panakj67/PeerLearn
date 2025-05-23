@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { useDispatch, useSelector } from "react-redux";
-import { toggleAiVisible, setMessages, clearMessages } from "../features/users/userSlice";
+import { toggleVisible, setMessages, clearMessages } from "../features/users/userSlice";
 import { FaTrash } from "react-icons/fa";
 import toast from "react-hot-toast";
 import { v4 as uuidv4 } from 'uuid'; 
@@ -12,7 +12,7 @@ const AiChatBot = () => {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef(null);
-  const Aivisible = useSelector((state) => state.user?.AiVisible);
+  const visible = useSelector((state) => state.user?.visible);
   const [show, setShow] = useState(false);
   const dispatch = useDispatch();
   const user = useSelector((state) => state.user?.user);
@@ -28,6 +28,9 @@ const AiChatBot = () => {
   }
   return id;
 });
+
+ console.log(visible);
+ 
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -126,7 +129,7 @@ const AiChatBot = () => {
         </div>
         <button
           className="text-white cursor-pointer text-2xl"
-          onClick={() => dispatch(toggleAiVisible())}
+          onClick={() => dispatch(toggleVisible())}
         >
           ×
         </button>
