@@ -3,7 +3,7 @@ import axios from "axios";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 import { toggleChatVisible } from "../features/users/userSlice";
-import { toggleChatVisible } from "../features/users/userSlice";
+
 
 import { io } from "socket.io-client";
 import toast from "react-hot-toast";
