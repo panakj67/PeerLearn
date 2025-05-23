@@ -178,7 +178,8 @@ const Preview = () => {
   }, [pdfDoc, currentPage]);
 
   const chatVisible = useSelector((state) => state.user?.chatVisible);
-
+  console.log(chatVisible);
+  
 
   return (
     <div className="max-w-6xl mx-auto mt-10 p-6 bg-white space-y-3">
