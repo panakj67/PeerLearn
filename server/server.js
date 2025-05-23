@@ -1,4 +1,5 @@
 import dotenv from 'dotenv';
+import http from 'http'
 dotenv.config();
 
 import cookieParser from 'cookie-parser';
@@ -8,11 +9,20 @@ import userRouter from './routes/userRoutes.js';
 import noteRouter from './routes/noteRoutes.js';
 import cors from 'cors';
 import apiRouter from './routes/apiRoutes.js';
+import { Server } from "socket.io";
+import messageRouter from "./routes/messageRoutes.js"
+import { initSocket } from './sockets/socket.js';
 
 
 
 
 const app = express()
+const server = http.createServer(app);
+
+// const io = new Server(server, {
+//    origin: "http://localhost:5173", // ✅ or use process.env.FRONTEND_URL
+//     credentials: true,
+// });
 
 connectDB()
 
@@ -24,11 +34,20 @@ app.use(express.urlencoded({ extended: true }));
 
 const allowedOrigins = [
   process.env.FRONTEND_URL,
+  "http://localhost:5173", // ✅ Add this for local dev
   "https://peer-learn.vercel.app",
   "https://peer-learn-git-main-pankaj-kumars-projects-a2ff3a66.vercel.app",
   "https://peer-learn-hcaoc1416-pankaj-kumars-projects-a2ff3a66.vercel.app",
 ];
 
+const io = new Server(server, {
+  cors: {
+    origin: ["http://localhost:5173"],
+    credentials: true,
+  },
+});
+
+initSocket(io)
 
 app.use(cors({
     origin: function (origin, callback) {
@@ -47,7 +66,8 @@ app.get('/', (req, res) => {
 app.use('/api/user', userRouter)
 app.use('/api/note', noteRouter)
 app.use('/api/chat', apiRouter)
+app.use('/api/messages', messageRouter)
 
-app.listen(3000, () => {
+server.listen(3000, () => {
     console.log("Server is running on PORT 3000");
 })
