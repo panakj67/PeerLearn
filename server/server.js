@@ -4,6 +4,7 @@ dotenv.config();
 
 import cookieParser from 'cookie-parser';
 import express from 'express';
+import rateLimit from 'express-rate-limit';
 import connectDB from './config/db.js';
 import userRouter from './routes/userRoutes.js';
 import noteRouter from './routes/noteRoutes.js';
@@ -23,6 +24,18 @@ const server = http.createServer(app);
 connectDB()
 
 
+// 1. Define the rate limiter
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // max 100 requests per IP in this window
+  handler: (req, res) => {
+    console.warn(`[${new Date().toISOString()}] Rate limit exceeded for IP: ${req.ip} on endpoint: ${req.originalUrl}`);
+    res.status(429).json({ message: 'Too many requests, please try again later.' });
+  }
+});
+
+// 2. Apply the rate limiter as global middleware
+app.use(limiter);
 app.use(express.json())
 app.use(cookieParser())
 app.use(express.urlencoded({ extended: true }));
