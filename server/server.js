@@ -17,6 +17,9 @@ import { initSocket } from './sockets/socket.js';
 
 
 const app = express()
+
+// ✅ Tell Express to trust the proxy
+app.set('trust proxy', 1);
 const server = http.createServer(app);
 
 
