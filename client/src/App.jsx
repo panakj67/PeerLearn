@@ -29,8 +29,9 @@ import ProtectedRoute from "./components/ProtectedRoute";
 
 axios.defaults.withCredentials = true;
 axios.defaults.baseURL =
-  import.meta.env.VITE_BACKEND_URL ||
-  "https://peer-learn-pankaj-kumars-projects-a2ff3a66.vercel.app";
+  axios.defaults.baseURL =
+  import.meta.env.VITE_BACKEND_URL || "https://peerlearn.onrender.com";
+
 
 const App = () => {
 

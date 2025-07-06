@@ -156,7 +156,7 @@ const Preview = () => {
     loadPdf();
   }, [url]);
 
-  console.log(useSelector(state => state.user.bookmarks));
+  // console.log(useSelector(state => state.user.bookmarks));
   
 
   // Render current page

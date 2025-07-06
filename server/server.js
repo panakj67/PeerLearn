@@ -14,60 +14,45 @@ import { Server } from "socket.io";
 import messageRouter from "./routes/messageRoutes.js"
 import { initSocket } from './sockets/socket.js';
 
-
-
 const app = express()
-
-// ✅ Tell Express to trust the proxy
 app.set('trust proxy', 1);
 const server = http.createServer(app);
 
-
-
-connectDB()
-
-
-// 1. Define the rate limiter
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // max 100 requests per IP in this window
-  handler: (req, res) => {
-    console.warn(`[${new Date().toISOString()}] Rate limit exceeded for IP: ${req.ip} on endpoint: ${req.originalUrl}`);
-    res.status(429).json({ message: 'Too many requests, please try again later.' });
-  }
-});
-
-app.use(cors({
-    origin: function (origin, callback) {
-        if (!origin || allowedOrigins.includes(origin)) {
-          callback(null, true);
-        } else {
-          callback(new Error("Not allowed by CORS"));
-        }
-      }, 
-    credentials: true, 
-}))
-
-
-app.use(express.json())
-app.use(cookieParser())
-app.use(express.urlencoded({ extended: true }));
-
-app.use((req, res, next) => {
-  console.log("🌐 Incoming request origin:", req.headers.origin);
-  next();
-});
-
-
-
+// ✅ Declare allowedOrigins at the top
 const allowedOrigins = [
   process.env.FRONTEND_URL,
-  "http://localhost:5173", // ✅ Add this for local dev
+  "http://localhost:5173",
   "https://peer-learn.vercel.app",
   "https://peer-learn-git-main-pankaj-kumars-projects-a2ff3a66.vercel.app",
   "https://peer-learn-hcaoc1416-pankaj-kumars-projects-a2ff3a66.vercel.app",
 ];
 
+// ✅ Apply CORS correctly
+app.use(cors({
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  credentials: true,
+}))
+
+connectDB()
+
+// ✅ Express parsers
+app.use(express.json())
+app.use(cookieParser())
+app.use(express.urlencoded({ extended: true }));
+
+// ✅ Log request origin
+app.use((req, res, next) => {
+  console.log("🌐 Incoming request origin:", req.headers.origin);
+  next();
+});
+
+// ✅ Apply socket.io with correct CORS
 const io = new Server(server, {
   cors: {
     origin: allowedOrigins,
@@ -77,18 +62,25 @@ const io = new Server(server, {
 
 initSocket(io)
 
-
-
+// ✅ Define routes and rate limiting AFTER sockets initialized
 app.get('/', (req, res) => {
-    res.send("API is working");
+  res.send("API is working");
 })
-app.use('/api', limiter);  // ✅ Only limits API endpoints
+
+app.use('/api', rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  handler: (req, res) => {
+    console.warn(`[${new Date().toISOString()}] Rate limit exceeded for IP: ${req.ip}`);
+    res.status(429).json({ message: 'Too many requests, please try again later.' });
+  }
+}));
+
 app.use('/api/user', userRouter)
 app.use('/api/note', noteRouter)
 app.use('/api/chat', apiRouter)
 app.use('/api/messages', messageRouter)
 
-
 server.listen(3000, () => {
-    console.log("Server is running on PORT 3000");
+  console.log("Server is running on PORT 3000");
 })
