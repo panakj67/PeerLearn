@@ -37,6 +37,17 @@ const limiter = rateLimit({
   }
 });
 
+app.use(cors({
+    origin: function (origin, callback) {
+        if (!origin || allowedOrigins.includes(origin)) {
+          callback(null, true);
+        } else {
+          callback(new Error("Not allowed by CORS"));
+        }
+      }, 
+    credentials: true, 
+}))
+
 
 app.use(express.json())
 app.use(cookieParser())
@@ -66,16 +77,7 @@ const io = new Server(server, {
 
 initSocket(io)
 
-app.use(cors({
-    origin: function (origin, callback) {
-        if (!origin || allowedOrigins.includes(origin)) {
-          callback(null, true);
-        } else {
-          callback(new Error("Not allowed by CORS"));
-        }
-      }, 
-    credentials: true, 
-}))
+
 
 app.get('/', (req, res) => {
     res.send("API is working");
@@ -85,6 +87,7 @@ app.use('/api/user', userRouter)
 app.use('/api/note', noteRouter)
 app.use('/api/chat', apiRouter)
 app.use('/api/messages', messageRouter)
+
 
 server.listen(3000, () => {
     console.log("Server is running on PORT 3000");
