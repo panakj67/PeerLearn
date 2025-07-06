@@ -34,8 +34,7 @@ const limiter = rateLimit({
   }
 });
 
-// 2. Apply the rate limiter as global middleware
-app.use(limiter);
+
 app.use(express.json())
 app.use(cookieParser())
 app.use(express.urlencoded({ extended: true }));
@@ -78,6 +77,7 @@ app.use(cors({
 app.get('/', (req, res) => {
     res.send("API is working");
 })
+app.use('/api', limiter);  // ✅ Only limits API endpoints
 app.use('/api/user', userRouter)
 app.use('/api/note', noteRouter)
 app.use('/api/chat', apiRouter)
