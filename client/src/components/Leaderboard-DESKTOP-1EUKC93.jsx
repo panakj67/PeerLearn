@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import {
   BarChart,
   Bar,
@@ -9,51 +9,34 @@ import {
   Cell,
 } from "recharts";
 import { motion } from "framer-motion";
+import { useEffect } from "react";
+import { useState } from "react";
 import axios from "axios";
-import { toast } from "react-hot-toast";
 import { useSelector } from "react-redux";
 
 const Leaderboard = () => {
-  const [data, setData] = useState([
-    { name: "Aman", points: 240 },
-    { name: "Priya", points: 220 },
-    { name: "Rahul", points: 200 },
-    { name: "Sneha", points: 180 },
-    { name: "You", points: 195 },
-  ]);
-
-  const fetchUser = async () => {
-    const response = await axios.get("/api/user/listuser");
-    return response.data;
-  };
-
-  const [total, setTotal] = useState(0);
-  const [rank, setRank] = useState(0);
-  const user = useSelector((state) => state.user.user);
+  const [data, setData] = useState([]);
+  const user = useSelector((state) => state.user?.user);
+  // console.log(user._id);
+  
 
   useEffect(() => {
-    const getUsers = async () => {
-      try {
-        const res = await fetchUser();
-
-        if (res.success) {
-          setTotal(res.users.length);
-          setRank(res.users.findIndex((u) => u._id === user._id));
-          // NOW UPDATE REACT STATE
-          setData(res.users.slice(0, 5));
-        }
-      } catch (err) {
-        toast.error(err.message);
+    try {
+      async function fetchData(){
+        const { data } = await axios.get("/api/user/getLeaderboard");
+        // console.log(data);
+        setData(data.users);
       }
-    };
-
-    getUsers();
+      fetchData();
+    } catch (error) {
+      console.log(error);
+    }
   }, []);
 
-
   return (
+    // <></>
     <div className="bg-gradient-to-br from-blue-100/20 to-blue-50/20 text-gray-900 rounded-3xl p-10 w-full max-w-6xl mx-auto my-16 shadow-xl">
-      <h2 className="text-4xl font-extrabold text-center mb-10 text-blue-600 drop-shadow-md">
+      <h2 className="text-4xl font-extrabold text-center mb-10 text-blue-600 drop-shadow-xl">
         🏆 Game Leaderboard
       </h2>
 
@@ -66,13 +49,12 @@ const Leaderboard = () => {
               <th className="py-4 px-6 text-left">Points</th>
             </tr>
           </thead>
-
           <tbody>
             {data.map((player, index) => (
               <tr
                 key={index}
                 className={`transition duration-300 hover:bg-blue-100/40 cursor-pointer ${
-                  index === rank ? "bg-cyan-100/40" : ""
+                  player.name === "You" ? "bg-cyan-100" : ""
                 }`}
               >
                 <td className="py-4 px-6 text-xl">
@@ -85,28 +67,24 @@ const Leaderboard = () => {
                     </span>
                   )}
                 </td>
-
                 <td className="py-4 px-6 flex items-center space-x-4 text-lg">
+                  {/* Avatar initials circle */}
                   <div className="bg-yellow-400 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold shadow-md">
                     {player.name.charAt(0)}
                   </div>
-
                   <span
                     className={
-                      index === rank
-                        ? "text-cyan-600 font-bold"
-                        : ""
+                      player.name === "You" ? "text-cyan-600 font-bold" : ""
                     }
                   >
                     {player.name}
-                    {index === rank && (
+                    {player.name === "You" && (
                       <span className="ml-2 bg-cyan-600 text-white text-xs px-2 py-0.5 rounded-full">
                         You
                       </span>
                     )}
                   </span>
                 </td>
-
                 <td className="py-4 px-6 text-yellow-600 font-semibold text-lg">
                   {player.points}
                 </td>
@@ -119,9 +97,9 @@ const Leaderboard = () => {
       <div className="mt-6 text-center text-sm text-gray-700">
         You are currently ranked{" "}
         <span className="text-yellow-600 font-bold text-lg">
-          #{rank + 1}
+          #{data.findIndex((u) => u._id === user._id) + 1}
         </span>{" "}
-        out of {total} players.
+        out of {data.length} players.
       </div>
     </div>
   );

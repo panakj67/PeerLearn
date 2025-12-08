@@ -11,7 +11,12 @@ import toast from "react-hot-toast";
 const socket = io(import.meta.env.VITE_BACKEND_URL, {
   withCredentials: true,
   transports: ["websocket"],
+  reconnection: true,
+  reconnectionAttempts: 5, // only try 5 times
+  reconnectionDelay: 3000, // wait 3 seconds between attempts
+  reconnectionDelayMax: 10000,
 });
+
 
 const GroupChat = () => {
   // const [messages, setMessages] = useState([]);
@@ -38,7 +43,7 @@ const GroupChat = () => {
 
     if (socket && socket.connected) {
       socket.emit("join-room", id);
-    //   console.log("joined room", id);
+      //   console.log("joined room", id);
     } else {
       console.warn("Socket not connected when trying to join room.");
     }
@@ -46,7 +51,7 @@ const GroupChat = () => {
     // socket.emit("join-room", id);
 
     socket.on("receive-message", (data) => {
-    //   console.log(data);
+      //   console.log(data);
 
       if (data.sender._id === user._id) return;
       setGroupMsg((prev) => [...prev, data]);
@@ -58,6 +63,55 @@ const GroupChat = () => {
       socket.off("receive-message");
     };
   }, [id]);
+
+  useEffect(() => {
+    const fetchMessages = async () => {
+      const res = await axios.get(`/api/messages/${id}`);
+      setGroupMsg(res.data.messages);
+    };
+
+    fetchMessages();
+
+    if (socket && socket.connected) {
+      socket.emit("join-room", id);
+    } else {
+      console.warn("Socket not connected when trying to join room.");
+    }
+
+    socket.on("receive-message", (data) => {
+      if (data.sender._id === user._id) return;
+      setGroupMsg((prev) => [...prev, data]);
+    });
+
+    dispatch(toggleChatVisible(true));
+
+    return () => {
+      socket.off("receive-message");
+    };
+  }, [id]);
+
+  // ✅ NEW useEffect to handle socket errors and disconnect
+  useEffect(() => {
+    const handleConnectError = (err) => {
+      console.error("❌ Socket connection error:", err);
+      toast.error("Socket connection failed");
+    };
+
+    const handleDisconnect = () => {
+      console.warn("⚠️ Socket disconnected");
+      toast.error("Disconnected from chat server");
+    };
+
+    socket.on("connect_error", handleConnectError);
+    socket.on("disconnect", handleDisconnect);
+
+    // Cleanup when component unmounts
+    return () => {
+      socket.off("connect_error", handleConnectError);
+      socket.off("disconnect", handleDisconnect);
+    };
+  }, []);
+
 
   //   console.log(groupMsg);
 
@@ -74,7 +128,7 @@ const GroupChat = () => {
             _id: user._id,
             name: user.name,
             profileImg: user.profileImg,
-          },  
+          },
           text: input,
         },
       ]);
@@ -139,9 +193,8 @@ const GroupChat = () => {
           return (
             <div
               key={idx}
-              className={`flex flex-col max-w-[80%] mb-3 ${
-                isCurrentUser ? "ml-auto items-end" : "mr-auto items-start"
-              }`}
+              className={`flex flex-col max-w-[80%] mb-3 ${isCurrentUser ? "ml-auto items-end" : "mr-auto items-start"
+                }`}
             >
               <div className="flex items-start">
                 {/* Avatar Column (always 40px wide) */}
@@ -172,11 +225,10 @@ const GroupChat = () => {
 
                   {/* Message bubble */}
                   <div
-                    className={`px-4 py-2 rounded-xl shadow-md text-md leading-tight break-words max-w-full ${
-                      isCurrentUser
+                    className={`px-4 py-2 rounded-xl shadow-md text-md leading-tight break-words max-w-full ${isCurrentUser
                         ? "bg-gradient-to-r from-[#2143e2] via-[#06B3FA] to-[#0596f7] text-white rounded-br-none"
                         : "bg-gray-100 text-black rounded-bl-none"
-                    }`}
+                      }`}
                   >
                     {msg.text}
                   </div>
@@ -205,11 +257,10 @@ const GroupChat = () => {
         <button
           onClick={handleSend}
           disabled={!input.trim()}
-          className={`p-4  bottom-2 shadow-xl cursor-pointer rounded-full text-white ${
-            !input.trim()
+          className={`p-4  bottom-2 shadow-xl cursor-pointer rounded-full text-white ${!input.trim()
               ? "bg-blue-600"
               : "bg-gradient-to-r from-[#2538DF] via-[#0990d9] to-[#0596f7] hover:bg-blue-700"
-          }`}
+            }`}
         >
           <svg
             className="w-5 h-5 rotate-45"

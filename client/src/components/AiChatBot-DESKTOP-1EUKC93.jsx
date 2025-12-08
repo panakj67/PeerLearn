@@ -5,9 +5,6 @@ import { toggleVisible, setMessages, clearMessages } from "../features/users/use
 import { FaTrash } from "react-icons/fa";
 import toast from "react-hot-toast";
 import { v4 as uuidv4 } from 'uuid'; 
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
-
 
 const AiChatBot = () => {
   // const [messages, setMessages] = useState([]);
@@ -102,7 +99,7 @@ const AiChatBot = () => {
   
 
   return (
-    <div className="fixed z-50 bottom-1 right-4 w-100 h-[99%] rounded-2xl shadow-lg overflow-hidden bg-white font-sans flex flex-col border border-gray-300">
+    <div className="fixed z-50 bottom-1 right-4 w-92 h-[99%] rounded-2xl shadow-lg overflow-hidden bg-white font-sans flex flex-col border border-gray-300">
       {/* Warning */}
       {show && 
          <div className="h-full w-full backdrop-blur-xs absolute z-52">
@@ -177,9 +174,7 @@ const AiChatBot = () => {
                   : "bg-white text-gray-800 rounded-bl-none"
               }`}
             >
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                {msg.text}
-              </ReactMarkdown>
+              {msg.text}
             </div>
           </div>
         ))}
@@ -206,7 +201,7 @@ const AiChatBot = () => {
           disabled={loading}
           className="flex-1 px-4 py-2 border-2 border-gray-300 rounded-full text-md font-semibold focus:outline-none"
         />
-        
+        {/* handle send msg */}
         <button
           onClick={handleSend}
           disabled={loading || !input.trim()}
