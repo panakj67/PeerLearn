@@ -228,7 +228,7 @@ export const updateUser = async (req, res) => {
 };
 
 export const temp = async (req, res) => {
-  const result = await User.updateMany(
+  const result = await userModel.updateMany(
     { messages: { $exists: false } }, // users without messages field
     { $set: { messages: [] } }
   );
@@ -266,16 +266,16 @@ export const clearMsg = async (req, res) => {
   }
 };
 
-export const listUser = async (req, res) => {
-    try{
-      const users = await User.aggregate([
-        {$sort : {points : -1}},
-        {$project : { name : 1, points : 1}}
+export const getLeaderboard = async (req, res) => {
+    try {
+      const users = await userModel.aggregate([
+        {$sort : {points : -1, createdAt: 1}},
+        { $limit: 10 },
+        { $project: { name: 1, points: 1, _id: 1 } }
       ]);
-      //console.log(users);
+      
       return res.json({ success : true, users});
-    }
-    catch(err) {
-      return res.json( { succes : false, message : "Internal Server Error!" } );
+    } catch (error) {
+      return res.json({success : false, message : "Something went wrong !"});
     }
 }

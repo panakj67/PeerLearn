@@ -1,5 +1,5 @@
 import express from 'express';
-import { test, login, register, isAuthorised, logout, downloadNote, updateUser, temp, addMsg, clearMsg, bookmarkNote, removeBookmark, listUser } from '../controllers/userController.js';
+import { test, login, register, isAuthorised, logout, downloadNote, updateUser, temp, addMsg, clearMsg, bookmarkNote, removeBookmark, getLeaderboard } from '../controllers/userController.js';
 import { authUser } from '../middleware/authUser.js';
 import upload from '../config/multer.js';
 
@@ -19,6 +19,6 @@ userRouter.post('/update', upload.single('file'), authUser, updateUser);
 userRouter.get('/temp', temp);
 userRouter.post('/addmsg', authUser, addMsg);
 userRouter.post('/clear', authUser, clearMsg);
-userRouter.get("/listUser", authUser, listUser);
+userRouter.get('/getLeaderboard', getLeaderboard);
 
 export default userRouter;

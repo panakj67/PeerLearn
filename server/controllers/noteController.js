@@ -141,7 +141,7 @@ export const temp = async (req, res) => {
 
 export const deleteNote = async (req, res) => {
   try {
-    console.log("hui")
+    // console.log("hui")
     const { id } = req.params;
     
     const note = await noteModel.findByIdAndDelete(id);
