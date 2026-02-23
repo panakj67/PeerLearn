@@ -28,7 +28,6 @@
   },
   "scripts": {
     "start": "node server.js",
-    "worker": "node worker.js",
-    "worker:email": "node scripts/cloudamqp-email-consumer.js"
+    "worker": "node worker.js"
   }
 }
