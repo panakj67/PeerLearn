@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { Routes, Route } from "react-router-dom";
 import Home from "./pages/Home";
 import Profile from "./pages/Profile";
@@ -19,7 +19,6 @@ import ScrollToTop from "./components/ScrollToTop";
 import { Toaster } from "react-hot-toast";
 import toast from "react-hot-toast";
 import BranchNotes from "./pages/BranchNotes";
-// axiosConfig.js or directly in index.js / App.js
 import axios from "axios";
 import { fetchNotes } from "./features/notes/noteSlice";
 import { setLoading, setUser, toggleVisible } from "./features/users/userSlice";
@@ -28,109 +27,86 @@ import AiChatBot from "./components/AiChatBot";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 axios.defaults.withCredentials = true;
-axios.defaults.baseURL =
-  axios.defaults.baseURL =
-  import.meta.env.VITE_BACKEND_URL || "https://peerlearn.onrender.com";
-
+axios.defaults.baseURL = import.meta.env.VITE_BACKEND_URL || "https://peerlearn.onrender.com";
 
 const App = () => {
-
   const user = useSelector((state) => state.user?.user);
-
   const showUserLogin = useSelector((state) => state.user.showUserLogin);
-  const loading = useSelector((state) => state.user.loading);
   const dispatch = useDispatch();
+  const visible = useSelector((state) => state.user?.visible);
 
   const getNotes = async () => {
     dispatch(setLoading(true));
     try {
       const { data } = await axios.get("/api/note/get");
-      if (data.success) {
-        dispatch(fetchNotes(data.notes));
-      } else toast.error(data.message);
+      if (data.success) dispatch(fetchNotes(data.notes));
+      else toast.error(data.message);
     } catch (error) {
       toast.error(error.message);
-    }
-    finally{
+    } finally {
       dispatch(setLoading(false));
     }
   };
-
 
   const fetchUser = async () => {
     dispatch(setLoading(true));
     try {
       const { data } = await axios.get("/api/user/is-auth");
-      if (data.success) {
-        console.log(data);
-        
-        dispatch(setUser(data.user));
-      }
+      if (data.success) dispatch(setUser(data.user));
     } catch (error) {
       toast.error(error.message);
-    }
-    finally{
+    } finally {
       dispatch(setLoading(false));
     }
   };
-
-  const notes = useSelector((state) => state.note.notes);
 
   useEffect(() => {
     fetchUser();
     getNotes();
   }, []);
 
-  const visible = useSelector((state) => state.user?.visible);
-
-    // console.log(visible)
-
-
   return (
-    <div className="pt-8 px-28 ">
+    <div className="min-h-screen">
       <Toaster />
       <Navbar />
+
       {!visible && (
-        <div
-          onClick={() => dispatch(toggleVisible())} // your function to toggle chatbot visibility
-          className="fixed bottom-6 right-6 cursor-pointer rounded-full p-1 
-             bg-gradient-to-r from-purple-500 via-pink-500 to-red-500"
+        <button
+          aria-label="Open AI assistant"
+          onClick={() => dispatch(toggleVisible())}
+          className="focus-ring fixed right-4 bottom-4 z-40 cursor-pointer rounded-full bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 p-1 shadow-lg sm:right-6 sm:bottom-6"
         >
-          <img  className="h-15 w-15 object-cover rounded-full"
-           src="https://www.shutterstock.com/image-vector/chat-bot-icon-virtual-smart-600nw-2478937553.jpg" alt="" />
-        </div>
+          <img
+            className="h-12 w-12 rounded-full object-cover sm:h-14 sm:w-14"
+            src="https://www.shutterstock.com/image-vector/chat-bot-icon-virtual-smart-600nw-2478937553.jpg"
+            alt="AI assistant"
+            loading="lazy"
+          />
+        </button>
       )}
-      
 
       {showUserLogin && <Login />}
       {visible && <AiChatBot />}
-      
+
       <ScrollToTop />
-      <Routes>
-        <Route path="/" element={<Home />}></Route>
-        <Route path="/profile" element={<ProtectedRoute element={<Profile />} />}>
-          <Route path="edit" element={<EditProfile user={user} />}></Route>
-        </Route>
-        <Route
-          path="/upload"
-          element={<ProtectedRoute element={<UploadPage />} />}
-        ></Route>
-        <Route path="/points" element={<PointSystem />}></Route>
-        <Route path="/about" element={<About />}></Route>
-        <Route path="/guidelines" element={<UploadGuidelines />}></Route>
-        <Route path="/howitworks" element={<HowItWorks />}></Route>
-        <Route path="/browse" element={<BrowseNotesPage />}></Route>
-        <Route
-          path="/my-uploads"
-          element={<ProtectedRoute element={<MyUploads />} />}
-        ></Route>
-        <Route path="/bookmark" element={<ProtectedRoute element={<BookmarkedNotes />} />}></Route>
-        <Route path="/:branchName" element={<BranchNotes />} />
-        <Route
-          path="/:branch/:id"
-          element={<ProtectedRoute element={<Preview />} />}
-        />
-      </Routes>
+      <main>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/profile" element={<ProtectedRoute element={<Profile />} />}>
+            <Route path="edit" element={<EditProfile user={user} />} />
+          </Route>
+          <Route path="/upload" element={<ProtectedRoute element={<UploadPage />} />} />
+          <Route path="/points" element={<PointSystem />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/guidelines" element={<UploadGuidelines />} />
+          <Route path="/howitworks" element={<HowItWorks />} />
+          <Route path="/browse" element={<BrowseNotesPage />} />
+          <Route path="/my-uploads" element={<ProtectedRoute element={<MyUploads />} />} />
+          <Route path="/bookmark" element={<ProtectedRoute element={<BookmarkedNotes />} />} />
+          <Route path="/:branchName" element={<BranchNotes />} />
+          <Route path="/:branch/:id" element={<ProtectedRoute element={<Preview />} />} />
+        </Routes>
+      </main>
 
       <Footer />
     </div>
