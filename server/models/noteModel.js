@@ -36,6 +36,16 @@ const noteSchema = new mongoose.Schema({
         type : String,
         required :  true,
     },
+    description : {
+        type : String,
+        default : ''
+    },
+
+    tags : {
+        type : [String],
+        default : []
+    },
+
     user : {
         type : mongoose.Schema.Types.ObjectId,
         ref : 'User',
@@ -63,6 +73,11 @@ const noteSchema = new mongoose.Schema({
     like: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
     dislike: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
 },{ timestamps : true })
+
+noteSchema.index({ hashcode: 1 }, { unique: true, sparse: true });
+noteSchema.index({ user: 1, createdAt: -1 });
+noteSchema.index({ createdAt: -1 });
+noteSchema.index({ subject: 1, branch: 1 });
 
 const noteModel = mongoose.model("Note", noteSchema)
 export default noteModel
