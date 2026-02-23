@@ -40,6 +40,11 @@ const normalizePageLimit = (page, limit, maxLimit = 50) => {
 };
 
 export const createNotes = async (req, res) => {
+  let uploadPublicId = null;
+  let dedupeLockKey = null;
+  let lockEnabled = false;
+  const file = req.file;
+
   try {
     const { title, college, degree, semester, branch, subject, description = "", tags = "" } = req.body;
     const file = req.file;
@@ -62,6 +67,7 @@ export const createNotes = async (req, res) => {
       format: "pdf",
     });
 
+    uploadPublicId = result.public_id;
     const fileUrl = result.secure_url;
     const firstPageImageUrl = fileUrl.replace(".pdf", ".jpg") + "#page=1";
 
