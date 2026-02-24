@@ -291,30 +291,8 @@ export const isAuthorised = async (req, res) => {
   }
 };
 
-export const refreshAccessToken = async (req, res) => {
-  try {
-    const refreshToken = req.cookies.refreshToken;
 
-    if (req.user?.id) {
-      await userModel.findByIdAndUpdate(req.user.id, { refreshTokenHash: "" });
-    } else if (refreshToken) {
-      try {
-        const decoded = jwt.verify(refreshToken, process.env.SECRET_KEY);
-        if (decoded?.id) {
-          await userModel.findByIdAndUpdate(decoded.id, { refreshTokenHash: "" });
-        }
-      } catch {
-        // ignore invalid/expired refresh token during logout
-      }
-    }
 
-    res.clearCookie("token", { httpOnly: true, sameSite: "None", secure: true });
-    res.clearCookie("refreshToken", { httpOnly: true, sameSite: "None", secure: true });
-    res.json({ success: true, message: "Logout Successfully!" });
-  } catch (error) {
-    res.json({ success: false, message: error.message });
-  }
-};
 
 export const downloadNote = async (req, res) => {
   try {
