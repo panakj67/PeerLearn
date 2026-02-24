@@ -14,12 +14,16 @@ const Login = () => {
   const [password, setPassword] = React.useState("");
   const [otp, setOtp] = React.useState("");
   const [resetToken, setResetToken] = React.useState("");
+  const [authLoading, setAuthLoading] = React.useState(false);
+  const [loadingText, setLoadingText] = React.useState('');
   const dispatch = useDispatch();
   const googleButtonRef = useRef(null);
   const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
-  const authHandler = async (endpoint, body) => {
+  const authHandler = async (endpoint, body, pendingText = 'Processing...') => {
     try {
+      setAuthLoading(true);
+      setLoadingText(pendingText);
       dispatch(setLoading(true));
       const { data } = await axios.post(endpoint, body);
 
@@ -41,6 +45,8 @@ const Login = () => {
     } catch (error) {
       toast.error(error.message || 'Request failed');
     } finally {
+      setAuthLoading(false);
+      setLoadingText('');
       dispatch(setLoading(false));
     }
   };
@@ -53,16 +59,24 @@ const Login = () => {
       return;
     }
 
-    if (mode === 'login') return authHandler('/api/user/login', { email, password });
-    if (mode === 'register') return authHandler('/api/user/register', { name, email, password });
-    if (mode === 'verifyOtp') return authHandler('/api/user/verify-email-otp', { email, otp });
-    if (mode === 'forgot') return authHandler('/api/user/forgot-password', { email });
-    if (mode === 'reset') return authHandler('/api/user/reset-password', { token: resetToken, password });
+    if (mode === 'login') return authHandler('/api/user/login', { email, password }, 'Logging in...');
+    if (mode === 'register') return authHandler('/api/user/register', { name, email, password }, 'Registering...');
+    if (mode === 'verifyOtp') return authHandler('/api/user/verify-email-otp', { email, otp }, 'Confirming...');
+    if (mode === 'forgot') return authHandler('/api/user/forgot-password', { email }, 'Sending OTP...');
+    if (mode === 'reset') return authHandler('/api/user/reset-password', { token: resetToken, password }, 'Resetting password...');
   }
 
   const handleGoogleCredential = async (credential) => {
-    return authHandler('/api/user/google-login', { credential });
+    return authHandler('/api/user/google-login', { credential }, 'Logging in...');
   };
+
+  const resendOtpHandler = async () => {
+    if (!email) {
+      toast.error('Please enter your email first.');
+      return;
+    }
+    return authHandler('/api/user/resend-email-otp', { email }, 'Sending OTP...');
+  }
 
   useEffect(() => {
     if (!googleClientId || !window.google || !googleButtonRef.current || (mode !== 'login' && mode !== 'register')) return;
@@ -101,7 +115,7 @@ const Login = () => {
         <button
           type="button"
           onClick={() => setMode("login")}
-          className={`rounded-lg py-2 text-sm font-semibold transition ${
+          className={`rounded-lg py-2 text-sm cursor-pointer font-semibold transition ${
             mode === "login"
               ? "bg-blue-600 text-white shadow"
               : "text-gray-600"
@@ -113,7 +127,7 @@ const Login = () => {
         <button
           type="button"
           onClick={() => setMode("register")}
-          className={`rounded-lg py-2 text-sm font-semibold transition ${
+          className={`rounded-lg py-2 text-sm cursor-pointer font-semibold transition ${
             mode === "register"
               ? "bg-blue-600 text-white shadow"
               : "text-gray-600"
@@ -139,6 +153,7 @@ const Login = () => {
         )}
       </div>
 
+      {/* Divider */}
       <div className="my-4 flex items-center gap-3">
         <div className="h-px flex-1 bg-gray-200" />
         <span className="text-xs text-gray-400">OR</span>
@@ -152,7 +167,7 @@ const Login = () => {
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="Full name"
-            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-blue-500"
+            className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm outline-blue-500"
             required
           />
         )}
@@ -166,7 +181,7 @@ const Login = () => {
             onChange={(e) => setEmail(e.target.value)}
             placeholder="Email"
             type="email"
-            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-blue-500"
+            className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm outline-blue-500"
             required
           />
         )}
@@ -179,7 +194,7 @@ const Login = () => {
               mode === "reset" ? "New password" : "Password"
             }
             type="password"
-            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-blue-500"
+            className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm outline-blue-500"
             required
           />
         )}
@@ -188,9 +203,9 @@ const Login = () => {
           <input
             value={otp}
             onChange={(e) => setOtp(e.target.value)}
-            placeholder="Enter OTP"
+            placeholder="Enter 6-digit OTP"
             maxLength={6}
-            className="w-full rounded-lg border px-3 py-2 text-sm outline-blue-500"
+            className="w-full rounded-lg border px-3 py-2.5 text-sm outline-blue-500"
             required
           />
         )}
@@ -199,17 +214,17 @@ const Login = () => {
           <input
             value={resetToken}
             onChange={(e) => setResetToken(e.target.value)}
-            placeholder="Reset token"
-            className="w-full rounded-lg border px-3 py-2 text-sm outline-blue-500"
+            placeholder="Reset token from email"
+            className="w-full rounded-lg border px-3 py-2.5 text-sm outline-blue-500"
             required
           />
         )}
       </div>
 
-      {/* Extra Links */}
+      {/* Login Options */}
       {mode === "login" && (
         <div className="mt-3 flex items-center justify-between text-xs">
-          <label className="flex items-center gap-2 text-gray-600">
+          <label className="flex items-center cursor-pointer gap-2 text-gray-600">
             <input
               type="checkbox"
               defaultChecked
@@ -221,7 +236,7 @@ const Login = () => {
           <button
             type="button"
             onClick={() => setMode("forgot")}
-            className="text-blue-600 hover:underline"
+            className="text-blue-600 cursor-pointer hover:underline"
           >
             Forgot password?
           </button>
@@ -232,19 +247,36 @@ const Login = () => {
         <div className="mt-3 text-right">
           <button
             type="button"
-            onClick={() =>
-              authHandler("/api/user/resend-email-otp", { email })
-            }
-            className="text-xs text-blue-600 hover:underline"
+            onClick={resendOtpHandler}
+            className="text-xs cursor-pointer text-blue-600 hover:underline"
           >
             Resend OTP
           </button>
         </div>
       )}
 
+      {/* Loading Text */}
+      {authLoading && (
+        <p className="mt-3 text-sm font-medium text-blue-600">
+          {loadingText}
+        </p>
+      )}
+
+      {(mode === "register" || mode === "reset") && (
+        <p className="mt-3 text-xs text-gray-500">
+          Password must be 8+ chars with uppercase, lowercase,
+          number and special character.
+        </p>
+      )}
+
       {/* Submit */}
-      <button className="mt-5 w-full rounded-lg bg-blue-600 py-2.5 text-sm font-semibold text-white shadow hover:bg-blue-700 transition">
-        {mode === "register"
+      <button
+        disabled={authLoading}
+        className="mt-5 w-full cursor-pointer rounded-lg bg-blue-600 py-2.5 text-sm font-semibold text-white shadow hover:bg-blue-700 transition disabled:cursor-not-allowed disabled:opacity-70"
+      >
+        {authLoading
+          ? loadingText
+          : mode === "register"
           ? "Create Account"
           : mode === "verifyOtp"
           ? "Verify OTP"
@@ -264,7 +296,7 @@ const Login = () => {
               <button
                 type="button"
                 onClick={() => setMode("register")}
-                className="text-blue-600 hover:underline"
+                className="text-blue-600 cursor-pointer hover:underline"
               >
                 Register
               </button>
@@ -275,7 +307,7 @@ const Login = () => {
               <button
                 type="button"
                 onClick={() => setMode("login")}
-                className="text-blue-600 hover:underline"
+                className="text-blue-600 cursor-pointer hover:underline"
               >
                 Login
               </button>
@@ -285,7 +317,7 @@ const Login = () => {
           <button
             type="button"
             onClick={() => setMode("login")}
-            className="text-blue-600 hover:underline"
+            className="text-blue-600 cursor-pointer hover:underline"
           >
             Back to login
           </button>
