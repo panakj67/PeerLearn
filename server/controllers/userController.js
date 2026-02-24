@@ -291,7 +291,7 @@ export const isAuthorised = async (req, res) => {
   }
 };
 
-export const logout = async (req, res) => {
+export const refreshAccessToken = async (req, res) => {
   try {
     const refreshToken = req.cookies.refreshToken;
 
