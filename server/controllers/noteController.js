@@ -18,7 +18,8 @@ import {
   getPopularIds,
 } from "../services/notesCache.service.js";
 import { searchNotes } from "../search/notes.search.js";
-import { cacheMetrics } from "../cache/cache.utils.js";
+import { cacheMetrics, deleteCache, setCacheIfAbsent } from "../cache/cache.utils.js";
+import { connectRedis } from "../config/redis.js";
 
 const NOTE_USER_POPULATE = { path: "user", select: "name email profileImg" };
 
@@ -47,14 +48,23 @@ export const createNotes = async (req, res) => {
 
   try {
     const { title, college, degree, semester, branch, subject, description = "", tags = "" } = req.body;
-    const file = req.file;
 
     if (!file) return res.json({ success: false, message: "No file provided" });
 
     const hashcode = getFileHash(file.path);
+    dedupeLockKey = `app:lock:note-hash:${hashcode}`;
+
+    const redisClient = await connectRedis();
+    if (redisClient) {
+      lockEnabled = true;
+      const lockAcquired = await setCacheIfAbsent(dedupeLockKey, { ts: Date.now() }, 30);
+      if (!lockAcquired) {
+        return res.json({ success: false, message: "Duplicate upload in progress. Please retry shortly." });
+      }
+    }
+
     const duplicate = await noteModel.findOne({ hashcode }).lean();
     if (duplicate) {
-      fs.unlinkSync(file.path);
       return res.json({ success: false, message: "Duplicate document detected!!" });
     }
 
@@ -71,27 +81,36 @@ export const createNotes = async (req, res) => {
     const fileUrl = result.secure_url;
     const firstPageImageUrl = fileUrl.replace(".pdf", ".jpg") + "#page=1";
 
-    let note = await noteModel.create({
-      title,
-      college,
-      degree,
-      semester,
-      branch,
-      subject,
-      description,
-      tags: Array.isArray(tags) ? tags : String(tags).split(",").map((t) => t.trim()).filter(Boolean),
-      image: firstPageImageUrl,
-      fileUrl,
-      hashcode,
-      user: req.user.id,
-    });
+    let note;
+    try {
+      note = await noteModel.create({
+        title,
+        college,
+        degree,
+        semester,
+        branch,
+        subject,
+        description,
+        tags: Array.isArray(tags) ? tags : String(tags).split(",").map((v) => v.trim()).filter(Boolean),
+        image: firstPageImageUrl,
+        fileUrl,
+        hashcode,
+        user: req.user.id,
+      });
+    } catch (dbError) {
+      if (dbError?.code === 11000 && uploadPublicId) {
+        await cloudinary.uploader.destroy(uploadPublicId, { resource_type: "raw", invalidate: true }).catch(() => {});
+        await cloudinary.uploader.destroy(uploadPublicId, { resource_type: "image", invalidate: true }).catch(() => {});
+        return res.json({ success: false, message: "Duplicate document detected!!" });
+      }
+      throw dbError;
+    }
 
     await userModel.findByIdAndUpdate(req.user.id, { $addToSet: { uploads: note._id } });
     note = await note.populate(NOTE_USER_POPULATE);
 
     await invalidateNotesCache({ noteId: note._id, userId: req.user.id });
     await setCachedNoteById(note._id, { success: true, note });
-
 
     emitDomainEvent("NOTE_UPLOADED", {
       userId: req.user.id,
@@ -104,6 +123,13 @@ export const createNotes = async (req, res) => {
   } catch (error) {
     console.error("Error in createNotes:", error);
     return res.json({ success: false, message: error.message });
+  } finally {
+    if (file?.path && fs.existsSync(file.path)) {
+      try { fs.unlinkSync(file.path); } catch {}
+    }
+    if (dedupeLockKey && lockEnabled) {
+      await deleteCache(dedupeLockKey);
+    }
   }
 };
 
