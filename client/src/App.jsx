@@ -28,9 +28,7 @@ import AiChatBot from "./components/AiChatBot";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 axios.defaults.withCredentials = true;
-axios.defaults.baseURL =
-  axios.defaults.baseURL =
-  import.meta.env.VITE_BACKEND_URL || "https://peerlearn.onrender.com";
+axios.defaults.baseURL = import.meta.env.VITE_BACKEND_URL || "https://peerlearn.onrender.com";
 
 
 const App = () => {
@@ -49,7 +47,15 @@ const App = () => {
         dispatch(fetchNotes(data.notes));
       } else toast.error(data.message);
     } catch (error) {
-      toast.error(error.message);
+      try {
+        const refresh = await axios.post("/api/user/refresh-token");
+        if (refresh?.data?.success) {
+          const { data } = await axios.get("/api/user/is-auth");
+          if (data.success) dispatch(setUser(data.user));
+        }
+      } catch (refreshError) {
+        toast.error(refreshError.message);
+      }
     }
     finally{
       dispatch(setLoading(false));
@@ -67,7 +73,15 @@ const App = () => {
         dispatch(setUser(data.user));
       }
     } catch (error) {
-      toast.error(error.message);
+      try {
+        const refresh = await axios.post("/api/user/refresh-token");
+        if (refresh?.data?.success) {
+          const { data } = await axios.get("/api/user/is-auth");
+          if (data.success) dispatch(setUser(data.user));
+        }
+      } catch (refreshError) {
+        toast.error(refreshError.message);
+      }
     }
     finally{
       dispatch(setLoading(false));
