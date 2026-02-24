@@ -13,7 +13,41 @@ const userSchema = new mongoose.Schema({
     },
     password : {
         type : String,
-        required : true,
+        default : '',
+    },
+    role : {
+        type : String,
+        enum : ['user', 'admin'],
+        default : 'user',
+    },
+    googleId : {
+        type : String,
+        default : '',
+        index : true,
+    },
+    isEmailVerified : {
+        type : Boolean,
+        default : false,
+    },
+    emailOtpHash : {
+        type : String,
+        default : '',
+    },
+    emailOtpExpires : {
+        type : Date,
+        default : null,
+    },
+    resetPasswordTokenHash : {
+        type : String,
+        default : '',
+    },
+    resetPasswordExpires : {
+        type : Date,
+        default : null,
+    },
+    refreshTokenHash : {
+        type : String,
+        default : '',
     },
     degree : String,
     college : String,
