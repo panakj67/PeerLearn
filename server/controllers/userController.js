@@ -11,6 +11,15 @@ import { bumpPopularScore, invalidateNotesCache } from "../services/notesCache.s
 import { sendEmail } from "../services/email.service.js";
 
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
+const getGoogleAudiences = () => {
+  const single = process.env.GOOGLE_CLIENT_ID ? [process.env.GOOGLE_CLIENT_ID] : [];
+  const multi = (process.env.GOOGLE_CLIENT_IDS || "")
+    .split(",")
+    .map((v) => v.trim())
+    .filter(Boolean);
+  return [...new Set([...single, ...multi])];
+};
 const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,}$/;
 
 const signAccessToken = (userId) => jwt.sign({ id: userId }, process.env.SECRET_KEY, { expiresIn: process.env.ACCESS_TOKEN_EXPIRES || "15m" });
@@ -242,33 +251,30 @@ export const refreshAccessToken = async (req, res) => {
 
 export const googleLogin = async (req, res) => {
   try {
-    //console.log("huui");
-    
-    if (!process.env.GOOGLE_CLIENT_ID) return res.json({ success: false, message: "Google login is not configured." });
+    const audiences = getGoogleAudiences();
+    if (!audiences.length) return res.json({ success: false, message: "Google login is not configured on server." });
 
-    const { credential } = req.body;
+    const credential = req.body.credential || req.body.token;
     if (!credential) return res.json({ success: false, message: "Missing Google credential." });
 
-    const ticket = await googleClient.verifyIdToken({ idToken: credential, audience: process.env.GOOGLE_CLIENT_ID });
+    const ticket = await googleClient.verifyIdToken({ idToken: credential, audience: audiences });
     const payload = ticket.getPayload();
     if (!payload?.email) return res.json({ success: false, message: "Unable to fetch Google profile." });
+    if (payload.email_verified === false) return res.json({ success: false, message: "Google email is not verified." });
 
-    let user = await userModel.findOne({ email: payload.email }).populate("uploads").populate("downloads").populate("bookmarks");
+    const normalizedEmail = String(payload.email).trim().toLowerCase();
+    let user = await userModel.findOne({ email: normalizedEmail }).populate("uploads").populate("downloads").populate("bookmarks");
 
     if (!user) {
       user = await userModel.create({
         name: payload.name || payload.email.split("@")[0],
-        email: payload.email,
+        email: normalizedEmail,
         googleId: payload.sub || "",
         profileImg: payload.picture || "",
         isEmailVerified: true,
       });
       emitDomainEvent("USER_REGISTERED", { userId: user._id, email: user.email, name: user.name });
-      user = await userModel
-                .findById(newUser._id)
-                .populate("uploads")
-                .populate("downloads")
-                .populate("bookmarks");
+      user = await user.populate("uploads").populate("downloads").populate("bookmarks");
     }
 
     const updates = {};
@@ -299,23 +305,24 @@ export const isAuthorised = async (req, res) => {
 
 export const logout = async (req, res) => {
   try {
-    // Clear auth cookies (must match options used while setting)
-    res.clearCookie("token", {
-      httpOnly: true,
-      secure: true,
-      sameSite: "strict",
-    });
+    const refreshToken = req.cookies.refreshToken;
 
-    res.clearCookie("refreshToken", {
-      httpOnly: true,
-      secure: true,
-      sameSite: "strict",
-    });
+    if (req.user?.id) {
+      await userModel.findByIdAndUpdate(req.user.id, { refreshTokenHash: "" });
+    } else if (refreshToken) {
+      try {
+        const decoded = jwt.verify(refreshToken, process.env.SECRET_KEY);
+        if (decoded?.id) {
+          await userModel.findByIdAndUpdate(decoded.id, { refreshTokenHash: "" });
+        }
+      } catch {
+        // ignore invalid/expired refresh token during logout
+      }
+    }
 
-    return res.json({
-      success: true,
-      message: "Logged out successfully.",
-    });
+    res.clearCookie("token", { httpOnly: true, sameSite: "None", secure: true });
+    res.clearCookie("refreshToken", { httpOnly: true, sameSite: "None", secure: true });
+    res.json({ success: true, message: "Logout Successfully!" });
   } catch (error) {
     return res.json({
       success: false,
