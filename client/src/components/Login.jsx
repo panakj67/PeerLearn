@@ -87,90 +87,213 @@ const Login = () => {
   const primaryModes = ['login', 'register'];
 
   return (
-    <div onClick={() => dispatch(hideLogin())} className='fixed inset-0 z-30 flex items-center justify-center bg-black/40 px-4'>
-      <form onSubmit={onSubmitHandler} onClick={(e) => e.stopPropagation()} className="w-full max-w-[560px] rounded-xl bg-[#ececec] px-6 py-8 shadow-2xl sm:px-10">
-        <div className='grid grid-cols-2 gap-4'>
-          <button type='button' onClick={() => setMode('login')} className={`h-14 rounded-md text-lg font-semibold transition ${mode === 'login' ? 'bg-blue-600 text-white shadow-lg' : 'bg-gray-300 text-gray-600'}`}>
-            LOGIN
-          </button>
-          <button type='button' onClick={() => setMode('register')} className={`h-14 rounded-md text-lg font-semibold transition ${mode === 'register' ? 'bg-blue-600 text-white shadow-lg' : 'bg-gray-300 text-gray-600'}`}>
-            REGISTER
-          </button>
-        </div>
-
-        <p className='mt-8 text-center text-4 text-gray-700'>Sign in with:</p>
-
-        <div className='mt-4 flex justify-center'>
-          {googleClientId ? (
-            <div ref={googleButtonRef} className='min-h-10' />
-          ) : (
-            <button type='button' className='inline-flex items-center gap-2 rounded-full border border-gray-300 bg-white px-4 py-2 text-sm text-gray-600'>
-              <FcGoogle className='text-xl' /> Google unavailable
-            </button>
-          )}
-        </div>
-
-        <p className='mt-6 text-center text-4 text-gray-700'>or:</p>
-
-        <div className='mt-5 space-y-4'>
-          {mode === "register" && (
-            <input onChange={(e) => setName(e.target.value)} value={name} placeholder='Full name' className='h-14 w-full rounded-md border border-gray-300 bg-white px-4 text-2xl outline-blue-500' type='text' required />
-          )}
-
-          {(mode === 'login' || mode === 'register' || mode === 'verifyOtp' || mode === 'forgot') && (
-            <input onChange={(e) => setEmail(e.target.value)} value={email} placeholder='Email' className='h-14 w-full rounded-md border border-gray-300 bg-white px-4 text-2xl outline-blue-500' type='email' required />
-          )}
-
-          {(mode === 'login' || mode === 'register' || mode === 'reset') && (
-            <input onChange={(e) => setPassword(e.target.value)} value={password} placeholder={mode === 'reset' ? 'New password' : 'Password'} className='h-14 w-full rounded-md border border-gray-300 bg-white px-4 text-2xl outline-blue-500' type='password' required />
-          )}
-
-          {mode === 'verifyOtp' && (
-            <input onChange={(e) => setOtp(e.target.value)} value={otp} placeholder='Enter 6-digit OTP' maxLength={6} className='h-14 w-full rounded-md border border-gray-300 bg-white px-4 text-2xl outline-blue-500' type='text' required />
-          )}
-
-          {mode === 'reset' && (
-            <input onChange={(e) => setResetToken(e.target.value)} value={resetToken} placeholder='Reset token from email' className='h-14 w-full rounded-md border border-gray-300 bg-white px-4 text-2xl outline-blue-500' type='text' required />
-          )}
-        </div>
-
-        {mode === 'login' && (
-          <div className='mt-4 flex items-center justify-between text-sm'>
-            <label className='flex items-center gap-2 text-gray-700'>
-              <input type='checkbox' defaultChecked className='h-4 w-4 accent-blue-600' /> Remember me
-            </label>
-            <button type='button' onClick={() => setMode('forgot')} className='text-blue-600 hover:underline'>Forgot password?</button>
-          </div>
-        )}
-
-        {mode === 'verifyOtp' && (
-          <div className='mt-3 text-right'>
-            <button type='button' onClick={() => authHandler('/api/user/resend-email-otp', { email })} className='text-sm text-blue-600 hover:underline'>Resend OTP</button>
-          </div>
-        )}
-
-        {(mode === 'register' || mode === 'reset') && (
-          <p className='mt-3 text-xs text-gray-500'>Password must be 8+ chars with uppercase, lowercase, number and special character.</p>
-        )}
-
-        <button className='mt-6 h-14 w-full rounded-md bg-blue-600 text-lg font-semibold text-white shadow-lg transition hover:bg-blue-700'>
-          {mode === 'register' ? 'SIGN UP' : mode === 'verifyOtp' ? 'VERIFY OTP' : mode === 'forgot' ? 'SEND RESET EMAIL' : mode === 'reset' ? 'RESET PASSWORD' : 'SIGN IN'}
+  <div
+    onClick={() => dispatch(hideLogin())}
+    className="fixed inset-0 z-30 flex items-center justify-center bg-black/40  px-4"
+  >
+    <form
+      onSubmit={onSubmitHandler}
+      onClick={(e) => e.stopPropagation()}
+      className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl"
+    >
+      {/* Tabs */}
+      <div className="mb-5 grid grid-cols-2 gap-2 rounded-lg bg-gray-100 p-1">
+        <button
+          type="button"
+          onClick={() => setMode("login")}
+          className={`rounded-lg py-2 text-sm font-semibold transition ${
+            mode === "login"
+              ? "bg-blue-600 text-white shadow"
+              : "text-gray-600"
+          }`}
+        >
+          Login
         </button>
 
-        <div className='mt-6 text-center text-gray-700'>
-          {primaryModes.includes(mode) ? (
-            mode === 'login' ? (
-              <p>Not a member? <button type='button' onClick={() => setMode('register')} className='text-blue-600 hover:underline'>Register</button></p>
-            ) : (
-              <p>Already have account? <button type='button' onClick={() => setMode('login')} className='text-blue-600 hover:underline'>Login</button></p>
-            )
-          ) : (
-            <button type='button' onClick={() => setMode('login')} className='text-blue-600 hover:underline'>Back to login</button>
-          )}
+        <button
+          type="button"
+          onClick={() => setMode("register")}
+          className={`rounded-lg py-2 text-sm font-semibold transition ${
+            mode === "register"
+              ? "bg-blue-600 text-white shadow"
+              : "text-gray-600"
+          }`}
+        >
+          Register
+        </button>
+      </div>
+
+      {/* Google */}
+      <p className="text-center text-sm text-gray-500">Continue with</p>
+
+      <div className="mt-2 flex justify-center">
+        {googleClientId ? (
+          <div ref={googleButtonRef} />
+        ) : (
+          <button
+            type="button"
+            className="flex items-center gap-2 rounded-full border px-4 py-2 text-sm text-gray-600"
+          >
+            <FcGoogle /> Google unavailable
+          </button>
+        )}
+      </div>
+
+      <div className="my-4 flex items-center gap-3">
+        <div className="h-px flex-1 bg-gray-200" />
+        <span className="text-xs text-gray-400">OR</span>
+        <div className="h-px flex-1 bg-gray-200" />
+      </div>
+
+      {/* Inputs */}
+      <div className="space-y-3">
+        {mode === "register" && (
+          <input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Full name"
+            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-blue-500"
+            required
+          />
+        )}
+
+        {(mode === "login" ||
+          mode === "register" ||
+          mode === "verifyOtp" ||
+          mode === "forgot") && (
+          <input
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="Email"
+            type="email"
+            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-blue-500"
+            required
+          />
+        )}
+
+        {(mode === "login" || mode === "register" || mode === "reset") && (
+          <input
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder={
+              mode === "reset" ? "New password" : "Password"
+            }
+            type="password"
+            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-blue-500"
+            required
+          />
+        )}
+
+        {mode === "verifyOtp" && (
+          <input
+            value={otp}
+            onChange={(e) => setOtp(e.target.value)}
+            placeholder="Enter OTP"
+            maxLength={6}
+            className="w-full rounded-lg border px-3 py-2 text-sm outline-blue-500"
+            required
+          />
+        )}
+
+        {mode === "reset" && (
+          <input
+            value={resetToken}
+            onChange={(e) => setResetToken(e.target.value)}
+            placeholder="Reset token"
+            className="w-full rounded-lg border px-3 py-2 text-sm outline-blue-500"
+            required
+          />
+        )}
+      </div>
+
+      {/* Extra Links */}
+      {mode === "login" && (
+        <div className="mt-3 flex items-center justify-between text-xs">
+          <label className="flex items-center gap-2 text-gray-600">
+            <input
+              type="checkbox"
+              defaultChecked
+              className="accent-blue-600"
+            />
+            Remember me
+          </label>
+
+          <button
+            type="button"
+            onClick={() => setMode("forgot")}
+            className="text-blue-600 hover:underline"
+          >
+            Forgot password?
+          </button>
         </div>
-      </form>
-    </div>
-  )
+      )}
+
+      {mode === "verifyOtp" && (
+        <div className="mt-3 text-right">
+          <button
+            type="button"
+            onClick={() =>
+              authHandler("/api/user/resend-email-otp", { email })
+            }
+            className="text-xs text-blue-600 hover:underline"
+          >
+            Resend OTP
+          </button>
+        </div>
+      )}
+
+      {/* Submit */}
+      <button className="mt-5 w-full rounded-lg bg-blue-600 py-2.5 text-sm font-semibold text-white shadow hover:bg-blue-700 transition">
+        {mode === "register"
+          ? "Create Account"
+          : mode === "verifyOtp"
+          ? "Verify OTP"
+          : mode === "forgot"
+          ? "Send Reset Email"
+          : mode === "reset"
+          ? "Reset Password"
+          : "Sign In"}
+      </button>
+
+      {/* Footer */}
+      <div className="mt-4 text-center text-xs text-gray-600">
+        {primaryModes.includes(mode) ? (
+          mode === "login" ? (
+            <p>
+              Don’t have an account?{" "}
+              <button
+                type="button"
+                onClick={() => setMode("register")}
+                className="text-blue-600 hover:underline"
+              >
+                Register
+              </button>
+            </p>
+          ) : (
+            <p>
+              Already have an account?{" "}
+              <button
+                type="button"
+                onClick={() => setMode("login")}
+                className="text-blue-600 hover:underline"
+              >
+                Login
+              </button>
+            </p>
+          )
+        ) : (
+          <button
+            type="button"
+            onClick={() => setMode("login")}
+            className="text-blue-600 hover:underline"
+          >
+            Back to login
+          </button>
+        )}
+      </div>
+    </form>
+  </div>
+);
 }
 
 export default Login
