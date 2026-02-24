@@ -21,9 +21,3 @@
 ## Search Flow
 1. `GET /api/note/search?q=...` executes MongoDB regex query.
 2. Results are paginated and sorted by date.
-
-## CloudAMQP Debugging (Consumers = 0)
-- Start worker process: `npm run worker` or direct email worker: `npm run worker:email`.
-- Ensure `RABBITMQ_URL` and queue name (`RABBITMQ_QUEUE`) match exactly between publisher and consumer.
-- Verify SMTP vars are set for real email sends.
-- If `consumerCount` is zero in dashboard, no consumer is attached yet.
