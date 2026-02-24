@@ -291,7 +291,32 @@ export const isAuthorised = async (req, res) => {
   }
 };
 
+export const logout = async (req, res) => {
+  try {
+    // Clear auth cookies (must match options used while setting)
+    res.clearCookie("accessToken", {
+      httpOnly: true,
+      secure: true,
+      sameSite: "strict",
+    });
 
+    res.clearCookie("refreshToken", {
+      httpOnly: true,
+      secure: true,
+      sameSite: "strict",
+    });
+
+    return res.json({
+      success: true,
+      message: "Logged out successfully.",
+    });
+  } catch (error) {
+    return res.json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
 
 
 export const downloadNote = async (req, res) => {
