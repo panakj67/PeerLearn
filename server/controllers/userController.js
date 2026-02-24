@@ -324,9 +324,13 @@ export const logout = async (req, res) => {
     res.clearCookie("refreshToken", { httpOnly: true, sameSite: "None", secure: true });
     res.json({ success: true, message: "Logout Successfully!" });
   } catch (error) {
-    res.json({ success: false, message: error.message });
+    return res.json({
+      success: false,
+      message: error.message,
+    });
   }
 };
+
 
 export const downloadNote = async (req, res) => {
   try {

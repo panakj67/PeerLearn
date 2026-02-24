@@ -27,7 +27,7 @@ userRouter.post('/reset-password', authLimiter, resetPassword);
 userRouter.post('/refresh-token', refreshAccessToken);
 
 userRouter.get('/is-auth', authUser, isAuthorised);
-userRouter.get('/logout', logout);
+userRouter.get('/logout', authUser, logout);
 userRouter.post('/download', authUser, downloadNote);
 
 userRouter.post('/bookmark', authUser, bookmarkNote);
