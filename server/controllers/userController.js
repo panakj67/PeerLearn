@@ -242,6 +242,8 @@ export const refreshAccessToken = async (req, res) => {
 
 export const googleLogin = async (req, res) => {
   try {
+    //console.log("huui");
+    
     if (!process.env.GOOGLE_CLIENT_ID) return res.json({ success: false, message: "Google login is not configured." });
 
     const { credential } = req.body;
@@ -262,7 +264,11 @@ export const googleLogin = async (req, res) => {
         isEmailVerified: true,
       });
       emitDomainEvent("USER_REGISTERED", { userId: user._id, email: user.email, name: user.name });
-      user = await user.populate("uploads").populate("downloads").populate("bookmarks");
+      user = await userModel
+                .findById(newUser._id)
+                .populate("uploads")
+                .populate("downloads")
+                .populate("bookmarks");
     }
 
     const updates = {};
@@ -294,7 +300,7 @@ export const isAuthorised = async (req, res) => {
 export const logout = async (req, res) => {
   try {
     // Clear auth cookies (must match options used while setting)
-    res.clearCookie("accessToken", {
+    res.clearCookie("token", {
       httpOnly: true,
       secure: true,
       sameSite: "strict",
