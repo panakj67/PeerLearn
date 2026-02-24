@@ -1,6 +1,7 @@
 import userModel from "../models/userModel.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import crypto from "crypto";
 import cloudinary from "../config/cloudinary.js";
 import User from "../models/userModel.js";
 import noteModel from "../models/noteModel.js";
@@ -12,7 +13,9 @@ export const test = (req, res) => {
 };
 
 export const login = async (req, res) => {
-  const { email, password } = req.body;
+  const email = String(req.body.email || "").trim().toLowerCase();
+  const { password } = req.body;
+
   try {
     const user = await userModel.findOne({ email }).populate("uploads").populate("downloads").populate("bookmarks");
     if (!user) {
@@ -31,15 +34,22 @@ export const login = async (req, res) => {
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
-    return res.json({ success: true, message: "LoggedIn successfully!", user });
+    const accessToken = await setAuthCookies(res, user);
+    return res.json({ success: true, message: "LoggedIn successfully!", user, accessToken });
   } catch (error) {
     res.json({ success: false, message: error.message });
   }
 };
 
 export const register = async (req, res) => {
-  const { name, email, password } = req.body;
+  const name = String(req.body.name || "").trim();
+  const email = String(req.body.email || "").trim().toLowerCase();
+  const { password } = req.body;
+
   try {
+    const user = await userModel.findOne({ email });
+    if (user) return res.json({ success: false, message: "User already exists." });
+
     const user = await userModel.findOne({ email });
     if (user) return res.json({ success: false, message: "User already exists." });
 
@@ -64,7 +74,7 @@ export const register = async (req, res) => {
   }
 };
 
-export const isAuthorised = async (req, res) => {
+export const resetPassword = async (req, res) => {
   try {
     if (!req.user) return res.json({ success: false, message: "You are not authorised" });
 
@@ -75,7 +85,7 @@ export const isAuthorised = async (req, res) => {
   }
 };
 
-export const logout = async (req, res) => {
+export const refreshAccessToken = async (req, res) => {
   try {
     res.clearCookie("token", { httpOnly: true, sameSite: "None", secure: true });
     res.json({ success: true, message: "Logout Successfully!" });
